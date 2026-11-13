@@ -796,9 +796,10 @@ const FIG_GRAPH = `
 ${'ГРАФІК'} функції: <<FIG {"type":"graph","fns":[{"expr":"x^2-4x+3","label":"y = x² − 4x + 3"}],"xmin":-2,"xmax":6,"ymin":-2,"ymax":8,"points":[[1,0,"A"],[3,0,"B"]]} FIG>>
    "expr": змінна x, дії + − * / ^, дужки, sin cos tan sqrt abs ln; "deg":true, якщо x у градусах. До 3 функцій. Для рисунка до умови дозволено графік лише того, що дано в умові (не показуй шуканих точок чи розв’язків).
 `;
+const NO_LATEX = '\n\nВАЖЛИВО ПРО ФОРМАТ: НІКОЛИ не використовуй LaTeX і знак долара: ніяких $a$, \\alpha, \\angle, \\frac, \\sin, \\cdot. Пиши лише звичайний текст і символи Unicode: a, α, β, ∠A, △ABC, 30°, a²,  √3, ≤, ·, дріб як a/b, синус як sin α.';
 function figDocFor(subject){
-  if(subject === 'geo') return '\n\n' + FIG_GEO + FIG_GRAPH;
-  return '\n\nРИСУНКИ. Ти можеш показати учневі графік: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного на відповідь і лише коли він справді допомагає; не показуй шуканих розв’язків.\n' + FIG_GRAPH;
+  if(subject === 'geo') return NO_LATEX + '\n\n' + FIG_GEO + FIG_GRAPH;
+  return NO_LATEX + '\n\nРИСУНКИ. Ти можеш показати учневі графік: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного на відповідь і лише коли він справді допомагає; не показуй шуканих розв’язків.\n' + FIG_GRAPH;
 }
 
 const fnum = n => +(+n).toFixed(2);
@@ -1009,8 +1010,21 @@ function formatRich(raw){
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+/* Страховка: якщо модель все ж напише LaTeX, перетворюємо його на звичайні символи */
+function delatex(t){
+  const G = {alpha:'α',beta:'β',gamma:'γ',delta:'δ',varphi:'φ',phi:'φ',pi:'π',angle:'∠',cdot:'·',times:'×',leq:'≤',le:'≤',geq:'≥',ge:'≥',neq:'≠',approx:'≈',pm:'±',circ:'°',triangle:'△',infty:'∞',to:'→',Rightarrow:'⇒',perp:'⊥',parallel:'∥',sin:'sin',cos:'cos',tan:'tg',tg:'tg',ctg:'ctg',cot:'ctg',left:'',right:'',text:'',cdots:'…'};
+  let s = String(t);
+  s = s.replace(/\$\$?([^$]+?)\$\$?/g, '$1').replace(/\\[()\[\]]/g, '');
+  for(let i = 0; i < 3; i++){
+    s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1)/($2)').replace(/\\sqrt\s*\{([^{}]*)\}/g, '√($1)').replace(/\\text\s*\{([^{}]*)\}/g, '$1');
+  }
+  s = s.replace(/\^\s*\{?\\circ\}?/g, '°').replace(/\^\{?2\}?/g, '²').replace(/\^\{?3\}?/g, '³').replace(/_\{?([A-Za-z0-9]+)\}?/g, '$1');
+  s = s.replace(/\\([A-Za-z]+)/g, (m, w) => (w in G) ? G[w] : w).replace(/\\,|\\;|\\!/g, ' ');
+  return s.replace(/[{}]/g, '');
+}
 function formatMsg(raw){
-  let s = escapeHtml(raw || '');
+  let s = escapeHtml(delatex(raw || ''));
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   const lines = s.split(/\n/);
   let html = ''; let inList = false;
