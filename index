@@ -1,0 +1,815 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Репетитор 9 клас</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  /* Layout: зліва зошит-«рейка» з темами обраного предмета, справа картка теми з трьома режимами роботи. */
+  :root{
+    --paper:#F4F6F1;
+    --paper-2:#ECEFE7;
+    --grid:#C7D3D9;
+    --ink:#1F3A5F;
+    --ink-2:#2C4F7C;
+    --ink-soft:#5A7290;
+    --on-ink:#FFFFFF;
+    --red:#B23A2E;
+    --green:#3F7A5D;
+    --amber:#B4791F;
+    --card:#FFFFFF;
+    --line:#D8DED2;
+    --text:#233127;
+    --text-soft:#5B675C;
+    --hover:rgba(31,58,95,.06);
+    --shadow: 0 1px 2px rgba(31,58,95,.06), 0 6px 20px rgba(31,58,95,.06);
+    --font-head: 'Fraunces', Georgia, serif;
+    --font-body: 'Source Sans 3', -apple-system, 'Segoe UI', sans-serif;
+    --font-hand: 'Caveat', cursive;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#161B17; --paper-2:#1C221D; --grid:#2A3630; --ink:#9FBEE8; --ink-2:#B7CDF0; --ink-soft:#7E97B8;
+      --on-ink:#10202F; --red:#E08277; --green:#7FC7A2; --amber:#E3B15C; --card:#1E241F; --line:#313C33;
+      --text:#E7ECE4; --text-soft:#A7B3A3; --hover:rgba(159,190,232,.10);
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#161B17; --paper-2:#1C221D; --grid:#2A3630; --ink:#9FBEE8; --ink-2:#B7CDF0; --ink-soft:#7E97B8;
+    --on-ink:#10202F; --red:#E08277; --green:#7FC7A2; --amber:#E3B15C; --card:#1E241F; --line:#313C33;
+    --text:#E7ECE4; --text-soft:#A7B3A3; --hover:rgba(159,190,232,.10);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/100% 34px,
+      var(--paper);
+    background-attachment:local;
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:15.5px;
+    line-height:1.55;
+    min-height:100vh;
+  }
+
+  .app{display:grid; grid-template-columns: 292px 1fr; min-height:100vh;}
+  @media (max-width: 860px){
+    .app{grid-template-columns: 1fr;}
+    .rail{position:relative; border-right:none; border-bottom:3px solid var(--red);}
+  }
+
+  /* ---------- Left rail ---------- */
+  .rail{
+    background:var(--paper-2);
+    border-right:3px solid var(--red);
+    padding:22px 0 30px;
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  }
+  @media (max-width:860px){ .rail{ position:static; height:auto; } }
+
+  .brand{padding:0 20px 14px;}
+  .brand .mark{font-family:var(--font-head); font-weight:700; font-size:22px; color:var(--ink); letter-spacing:.2px;}
+  .brand .sub{color:var(--text-soft); font-size:12.5px; margin-top:3px;}
+
+  .subj{display:grid; grid-template-columns:1fr 1fr; margin:0 20px 16px; border:1.4px solid var(--ink); border-radius:8px; overflow:hidden;}
+  .subj button{
+    font-family:var(--font-body); font-size:14px; font-weight:600; padding:9px 8px; cursor:pointer;
+    background:transparent; color:var(--ink); border:none;
+  }
+  .subj button + button{border-left:1.4px solid var(--ink);}
+  .subj button:hover{background:var(--hover);}
+  .subj button.active{background:var(--ink); color:var(--on-ink);}
+
+  .progress-wrap{padding:0 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px;}
+  .progress-label{display:flex; justify-content:space-between; font-size:12px; color:var(--text-soft); margin-bottom:6px;}
+  .progress-bar{height:6px; background:var(--line); border-radius:4px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--green); border-radius:4px; transition:width .4s ease;}
+
+  .chapter{margin-top:6px;}
+  .chapter-head{padding:10px 20px 6px; font-family:var(--font-head); font-weight:600; font-size:13.5px; color:var(--ink-soft);}
+  .topic-btn{
+    display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+    padding:8px 20px; border:none; background:transparent; cursor:pointer;
+    font-family:var(--font-body); font-size:13.6px; color:var(--text);
+    border-left:3px solid transparent;
+  }
+  .topic-btn:hover{background:var(--hover);}
+  .topic-btn.active{background:var(--card); border-left-color:var(--ink); color:var(--ink); font-weight:600; box-shadow: inset 0 0 0 1px var(--line);}
+  .topic-btn .num{
+    flex:none; width:20px; height:20px; border-radius:50%; border:1.4px solid var(--ink-soft);
+    display:flex; align-items:center; justify-content:center; font-size:10.5px; color:var(--ink-soft);
+  }
+  .topic-btn.done .num{background:var(--green); border-color:var(--green); color:var(--on-ink);}
+  .topic-btn .ttl{flex:1; line-height:1.3;}
+
+  /* ---------- Main ---------- */
+  .main{padding: 26px 30px 60px; max-width: 900px; min-width:0;}
+  @media (max-width:600px){ .main{padding:18px 16px 40px;} }
+
+  .topbar{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px;}
+  .crumbs{font-size:12.5px; color:var(--text-soft);}
+  .crumbs b{color:var(--ink);}
+  .reset-link{font-size:12px; color:var(--text-soft); background:none; border:none; cursor:pointer; text-decoration:underline; text-underline-offset:2px; padding:0; font-family:var(--font-body);}
+  .reset-link.armed{color:var(--red); font-weight:600;}
+
+  .topic-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 24px 20px; margin-bottom:18px;}
+  .topic-title{font-family:var(--font-head); font-size:25px; font-weight:600; color:var(--ink); margin:0 0 8px; line-height:1.25; text-wrap:balance;}
+  .topic-blurb{color:var(--text-soft); font-size:14px; margin:0 0 16px; max-width:64ch;}
+
+  .mark-done{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; color:var(--text-soft); cursor:pointer; user-select:none; margin-bottom:4px;}
+  .mark-done input{accent-color:var(--green); width:15px; height:15px;}
+
+  .tabs{display:flex; gap:6px; margin:16px 0 0; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{
+    font-family:var(--font-body); font-size:13.5px; font-weight:600; color:var(--text-soft);
+    background:none; border:none; padding:9px 4px; margin-right:14px; cursor:pointer;
+    border-bottom:2.5px solid transparent; position:relative; top:1px;
+  }
+  .tab.active{color:var(--ink); border-bottom-color:var(--ink);}
+
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; min-height:220px;}
+  .panel-hint{font-size:13px; color:var(--text-soft); margin:0 0 14px; padding-bottom:12px; border-bottom:1px dashed var(--line);}
+  .panel-hint b{color:var(--amber); font-weight:600;}
+
+  .chat-log{display:flex; flex-direction:column; gap:14px; margin-bottom:14px;}
+  .msg{max-width:86%; padding:11px 14px; border-radius:10px; font-size:14.5px; line-height:1.55; overflow-wrap:anywhere;}
+  .msg p{margin:0 0 8px;} .msg p:last-child{margin-bottom:0;}
+  .msg ul{margin:6px 0; padding-left:20px;}
+  .msg.student{align-self:flex-end; background:var(--ink); color:var(--on-ink); border-bottom-right-radius:3px;}
+  .msg.tutor{align-self:flex-start; background:var(--paper-2); color:var(--text); border:1px solid var(--line); border-bottom-left-radius:3px;}
+  .msg .label{display:block; font-family:var(--font-hand); font-size:15px; margin-bottom:2px; opacity:.75;}
+
+  .composer{display:flex; gap:8px; align-items:flex-end; margin-top:6px;}
+  .composer textarea{
+    flex:1; min-width:0; resize:none; min-height:44px; max-height:160px; padding:11px 13px;
+    border:1.4px solid var(--line); border-radius:8px; font-family:var(--font-body); font-size:14.5px;
+    background:var(--paper); color:var(--text); line-height:1.4;
+  }
+  .composer textarea:focus{outline:none; border-color:var(--ink-soft);}
+  .send-btn{
+    flex:none; background:var(--ink); color:var(--on-ink); border:none; border-radius:8px;
+    padding:0 18px; height:44px; font-family:var(--font-body); font-weight:600; font-size:14px; cursor:pointer;
+  }
+  .send-btn:disabled{opacity:.5; cursor:default;}
+  .send-btn:hover:not(:disabled){background:var(--ink-2);}
+
+  .attach-btn{flex:none; width:44px; height:44px; border-radius:8px; border:1.4px solid var(--line); background:var(--paper); font-size:20px; cursor:pointer; line-height:1;}
+  .attach-btn:hover:not(:disabled){border-color:var(--ink-soft);}
+  .attach-btn:disabled{opacity:.5; cursor:default;}
+  .attach-preview{display:flex; align-items:center; gap:10px; margin-top:6px; font-size:13px; color:var(--text-soft);}
+  .attach-preview img{height:64px; width:auto; max-width:120px; object-fit:cover; border-radius:6px; border:1px solid var(--line);}
+  .attach-preview button{border:none; background:none; color:var(--red); cursor:pointer; font-size:13px; font-family:var(--font-body); text-decoration:underline;}
+  .msg-img{display:block; max-width:100%; max-height:240px; border-radius:6px; margin:4px 0 8px; background:#fff;}
+  .quick-row{display:flex; gap:8px; flex-wrap:wrap; margin:2px 0 14px;}
+  .quick-chip{font-size:12.5px; padding:6px 11px; border-radius:999px; border:1px solid var(--line); background:var(--paper); color:var(--ink-soft); cursor:pointer; font-family:var(--font-body);}
+  .quick-chip:hover{border-color:var(--ink-soft); color:var(--ink);}
+
+  .typing{display:inline-flex; gap:4px; align-items:center; padding:2px 0;}
+  .typing span{width:5px; height:5px; border-radius:50%; background:var(--ink-soft); animation: blink 1.2s infinite ease-in-out;}
+  .typing span:nth-child(2){animation-delay:.2s;} .typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;} 40%{opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ .typing span{animation:none; opacity:.6;} .progress-fill{transition:none;} }
+
+  .quiz-card{border:1px solid var(--line); border-radius:9px; padding:16px 18px; background:var(--paper);}
+  .quiz-q{font-size:15.5px; margin:0 0 12px; color:var(--text);}
+  .quiz-fig{font-size:13.5px; color:var(--text-soft); margin:0 0 12px; padding:8px 10px; border:1px dashed var(--line);}
+  .quiz-fig b{color:var(--amber); font-weight:600;}
+  .quiz-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .ghost-btn{background:none; border:1.4px solid var(--line); color:var(--ink); border-radius:7px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body);}
+  .ghost-btn:hover{border-color:var(--ink-soft);}
+  .ghost-btn.primary{background:var(--ink); color:var(--on-ink); border-color:var(--ink);}
+  .ghost-btn.primary:hover{background:var(--ink-2);}
+  .reveal{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:14px;}
+  .reveal .k{color:var(--amber); font-weight:600;}
+  .empty-state{color:var(--text-soft); font-size:14px; text-align:center; padding:30px 10px;}
+
+  :focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  ::-webkit-scrollbar{width:9px; height:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:6px;}
+</style>
+
+<div class="app">
+  <nav class="rail" id="rail">
+    <div class="brand">
+      <div class="mark">Репетитор · 9 клас</div>
+      <div class="sub">За підручниками Мерзляка і Якіра</div>
+    </div>
+    <div class="subj" id="subj" role="group" aria-label="Предмет"></div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Пройдено пунктів</span><span id="progressText">0 / 0</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div id="chapters"></div>
+  </nav>
+
+  <main class="main" id="mainArea">
+    <div class="topbar">
+      <div class="crumbs" id="crumbs">Оберіть тему зліва</div>
+      <button class="reset-link" id="resetProgressBtn">Скинути прогрес</button>
+    </div>
+    <div id="topicArea"></div>
+  </main>
+</div>
+
+<script>
+/* ================= Data: textbook structure ================= */
+const ALG_CHAPTERS = [
+  { id:'s1', title:'§1. Нерівності', topics:[
+    {id:1, title:'Числові нерівності', blurb:'Що означає "більше" і "менше" для чисел, і як порівнювати вирази через їхню різницю.'},
+    {id:2, title:'Основні властивості числових нерівностей', blurb:'Правила, які дозволяють перетворювати нерівності, не порушуючи знак порівняння.'},
+    {id:3, title:'Додавання і множення числових нерівностей. Оцінювання значення виразу', blurb:'Як із кількох нерівностей отримати нову й оцінити, у яких межах лежить вираз.'},
+    {id:4, title:'Нерівності з однією змінною', blurb:'Що таке розв’язок нерівності і чим він відрізняється від розв’язку рівняння.'},
+    {id:5, title:'Розв’язування лінійних нерівностей з однією змінною. Числові проміжки', blurb:'Алгоритм розв’язування лінійних нерівностей і запис відповіді у вигляді проміжку.'},
+    {id:6, title:'Системи лінійних нерівностей з однією змінною', blurb:'Як знайти спільний розв’язок одразу кількох нерівностей.'},
+  ]},
+  { id:'s2', title:'§2. Квадратична функція', topics:[
+    {id:7, title:'Повторення та розширення відомостей про функцію', blurb:'Область визначення, область значень, способи задання функції.'},
+    {id:8, title:'Властивості функції', blurb:'Зростання, спадання, нулі функції, проміжки знакосталості.'},
+    {id:9, title:'Побудова графіка функції y = ax²', blurb:'Як коефіцієнт a змінює форму й напрям віток параболи.'},
+    {id:10, title:'Побудова графіків функцій y = x² + b і y = (x + a)²', blurb:'Зсуви параболи вздовж осей координат.'},
+    {id:11, title:'Квадратична функція, її графік і властивості', blurb:'Загальний вигляд y = ax² + bx + c: вершина параболи та всі її властивості.'},
+    {id:12, title:'Розв’язування квадратних нерівностей', blurb:'Як використовувати графік параболи, щоб розв’язувати нерівності другого степеня.'},
+    {id:13, title:'Системи рівнянь із двома змінними', blurb:'Способи підстановки й додавання для систем, де є нелінійне рівняння.'},
+    {id:14, title:'Система двох рівнянь із двома змінними як математична модель прикладної задачі', blurb:'Як перекладати текстову задачу мовою системи рівнянь.'},
+  ]},
+  { id:'s3', title:'§3. Числові послідовності', topics:[
+    {id:15, title:'Числові послідовності', blurb:'Що таке послідовність, способи її задання — формулою або рекурентно.'},
+    {id:16, title:'Арифметична прогресія', blurb:'Послідовність зі сталою різницею та формула її n-го члена.'},
+    {id:17, title:'Сума n перших членів арифметичної прогресії', blurb:'Формула суми перших n членів арифметичної прогресії та її виведення.'},
+    {id:18, title:'Геометрична прогресія', blurb:'Послідовність зі сталим знаменником та формула її n-го члена.'},
+    {id:19, title:'Сума n перших членів геометричної прогресії', blurb:'Формула суми перших n членів геометричної прогресії.'},
+  ]},
+  { id:'s4', title:'§4. Основи комбінаторики, теорії ймовірностей та статистики', topics:[
+    {id:20, title:'Основні правила комбінаторики', blurb:'Правило суми та правило добутку для підрахунку кількості варіантів.'},
+    {id:21, title:'Частота та ймовірність випадкової події', blurb:'Як оцінювати ймовірність на основі серії експериментів.'},
+    {id:22, title:'Класичне визначення ймовірності', blurb:'Ймовірність як відношення числа сприятливих наслідків до числа всіх наслідків.'},
+    {id:23, title:'Початкові відомості про статистику', blurb:'Середнє значення, мода, медіана і як працювати з вибірками даних.'},
+  ]},
+];
+
+/* facts — опорні твердження підручника, які репетитор вважає істинними */
+const GEO_CHAPTERS = [
+  { id:'g-s1', title:'§1. Розв’язування трикутників', topics:[
+    {id:1, title:'Синус, косинус і тангенс кута від 0° до 180°', blurb:'Розширюємо означення синуса, косинуса й тангенса на тупі кути через одиничне півколо.',
+     facts:'Одиничне півколо: центр (0;0), радіус 1. Куту α відповідає точка M(x;y): cos α = x, sin α = y; tg α = sin α / cos α (α ≠ 90°). sin 0°=0, cos 0°=1, sin 90°=1, cos 90°=0, sin 180°=0, cos 180°=−1. 0 ≤ sin α ≤ 1, −1 ≤ cos α ≤ 1. Косинус тупого кута від’ємний. sin(180°−α)=sin α, cos(180°−α)=−cos α, tg(180°−α)=−tg α. sin²α+cos²α=1. sin(90°−α)=cos α.'},
+    {id:2, title:'Теорема косинусів', blurb:'Як за двома сторонами й кутом між ними знайти третю сторону, і як за сторонами визначити вид трикутника.',
+     facts:'a² = b² + c² − 2bc·cos α (теорема Піфагора — окремий випадок). Наслідок: нехай a — найбільша сторона. Якщо a² < b²+c², трикутник гострокутний; a² > b²+c² — тупокутний; a² = b²+c² — прямокутний. Сума квадратів діагоналей паралелограма дорівнює сумі квадратів усіх його сторін. Медіана до сторони c: m_c = ½·√(2a²+2b²−c²).'},
+    {id:3, title:'Теорема синусів', blurb:'Сторони пропорційні синусам протилежних кутів; зв’язок із радіусом описаного кола.',
+     facts:'a/sin α = b/sin β = c/sin γ = 2R. Лема про хорду: хорда дорівнює добутку діаметра на синус будь-якого вписаного кута, що на неї спирається. R = a/(2 sin α). Коли відомо дві сторони й кут проти однієї з них, sin шуканого кута знаходять за теоремою синусів; кут може бути гострим або 180° мінус гострий — перевіряють, чи сума кутів менша від 180° і чи проти більшої сторони більший кут.'},
+    {id:4, title:'Розв’язування трикутників', blurb:'Знаходимо всі невідомі сторони й кути за трьома даними елементами.',
+     facts:'Розв’язати трикутник — знайти решту елементів за трьома даними (хоча б одна — сторона). Сторона і два кути: третій кут = 180° − сума двох, далі теорема синусів. Дві сторони і кут між ними: теорема косинусів для третьої сторони, далі кути. Три сторони: теорема косинусів для кутів. Дві сторони і кут проти однієї з них: теорема синусів, випадків може бути 0, 1 або 2. Сума кутів трикутника 180°.'},
+    {id:5, title:'Формули для знаходження площі трикутника', blurb:'Площа через два боки й кут, формула Герона, радіуси вписаного й описаного кіл.',
+     facts:'S = ½·a·b·sin γ. Формула Герона: S = √(p(p−a)(p−b)(p−c)), p — півпериметр. S = abc/(4R), отже R = abc/(4S). S = p·r, отже r = S/p. Площа паралелограма S = ab·sin α. Площа опуклого чотирикутника = ½·d1·d2·sin φ, де φ — кут між діагоналями. Площа описаного многокутника = p·r.'},
+  ]},
+  { id:'g-s2', title:'§2. Правильні многокутники', topics:[
+    {id:6, title:'Правильні многокутники та їхні властивості', blurb:'Кути, центральний кут, вписане й описане кола правильного n-кутника.',
+     facts:'Правильний многокутник: усі сторони рівні й усі кути рівні. Кут правильного n-кутника = 180°(n−2)/n. Центральний кут = 360°/n. Правильний многокутник можна вписати в коло й описати навколо кола, центри збігаються. R_n = a/(2·sin(180°/n)), r_n = a/(2·tg(180°/n)). Трикутник: R = a√3/3, r = a√3/6. Квадрат: R = a√2/2, r = a/2. Шестикутник: R = a, r = a√3/2. Сума кутів опуклого n-кутника 180°(n−2).'},
+    {id:7, title:'Довжина кола. Площа круга', blurb:'Довжина кола й дуги, площа круга, сектора й сегмента.',
+     facts:'C = 2πR. Довжина дуги в n°: l = πRn/180. Площа круга S = πR². Площа сектора з дугою n°: S = πR²n/360. Площа сегмента: від площі сектора віднімають площу трикутника AOB (менший сегмент) або додають її (більший сегмент). Площа півкруга πR²/2. π ≈ 3,14.'},
+  ]},
+  { id:'g-s3', title:'§3. Декартові координати на площині', topics:[
+    {id:8, title:'Відстань між двома точками. Координати середини відрізка', blurb:'Формули відстані й середини відрізка та як ними доводити властивості фігур.',
+     facts:'AB = √((x2−x1)² + (y2−y1)²). Середина відрізка: x0 = (x1+x2)/2, y0 = (y1+y2)/2. Трикутник рівнобедрений — за рівними сторонами; прямокутний — за оберненою теоремою Піфагора. Чотирикутник — паралелограм, якщо діагоналі мають спільну середину; прямокутник — якщо ще й діагоналі рівні.'},
+    {id:9, title:'Рівняння фігури. Рівняння кола', blurb:'Що таке рівняння фігури й як записати рівняння кола.',
+     facts:'Рівняння фігури F — рівняння з двома змінними, яке задовольняють координати кожної точки F і лише вони. Коло з центром (a;b) і радіусом R: (x−a)² + (y−b)² = R². З центром у початку координат: x² + y² = R². Щоб із рівняння вигляду x²+y²+px+qy+c=0 знайти центр і радіус, виділяють повні квадрати.'},
+    {id:10, title:'Рівняння прямої', blurb:'Загальне рівняння прямої, вертикальні й невертикальні прямі.',
+     facts:'Рівняння прямої: ax + by = c, де a і b одночасно не дорівнюють нулю. Якщо b = 0, пряма вертикальна: x = c/a. Якщо b ≠ 0, її записують як y = kx + p. Пряма через дві точки: підставити координати в y = kx + p і розв’язати систему; якщо абсциси рівні — пряма вертикальна. Точки перетину з осями: y=0 дає x, x=0 дає y. Пряма й коло можуть мати 0, 1 або 2 спільні точки (система рівнянь).'},
+    {id:11, title:'Кутовий коефіцієнт прямої', blurb:'Як кутовий коефіцієнт пов’язаний із нахилом прямої й паралельністю.',
+     facts:'У рівнянні y = kx + b число k — кутовий коефіцієнт, k = tg α, де α — кут між прямою й додатним напрямком осі абсцис. Прямі y = k1x + b1 і y = k2x + b2 паралельні тоді й тільки тоді, коли k1 = k2 і b1 ≠ b2. Для перпендикулярних невертикальних прямих k1·k2 = −1. Кут α гострий при k > 0 і тупий при k < 0.'},
+  ]},
+  { id:'g-s4', title:'§4. Вектори', topics:[
+    {id:12, title:'Поняття вектора', blurb:'Вектор як напрямлений відрізок, модуль, колінеарні й рівні вектори.',
+     facts:'Вектор — напрямлений відрізок: початок A, кінець B, позначення AB. Модуль |AB| — довжина відрізка AB; модуль нульового вектора 0. Колінеарні вектори лежать на одній прямій або на паралельних прямих; вони співнапрямлені або протилежно напрямлені. Рівні вектори: однакові модулі й співнапрямлені. Від будь-якої точки можна відкласти єдиний вектор, рівний даному. Якщо AB = DC як вектори й точки не лежать на одній прямій, то ABCD — паралелограм.'},
+    {id:13, title:'Координати вектора', blurb:'Як знайти координати й модуль вектора за координатами його кінців.',
+     facts:'Вектор AB з A(x1;y1), B(x2;y2) має координати (x2−x1; y2−y1). Модуль вектора a(a1;a2): |a| = √(a1²+a2²). Рівні вектори мають рівні відповідні координати, і навпаки. Нульовий вектор має координати (0;0).'},
+    {id:14, title:'Додавання і віднімання векторів', blurb:'Правила трикутника й паралелограма, різниця векторів, протилежні вектори.',
+     facts:'Правило трикутника: AB + BC = AC. Правило паралелограма для двох векторів з однієї точки. Координати суми: (a1+b1; a2+b2); різниці: (a1−b1; a2−b2). Різниця: якщо відкласти OA = a і OB = b, то a − b = BA. Протилежний вектор −a має координати (−a1; −a2); AB = −BA. Властивості: a+b = b+a, (a+b)+c = a+(b+c), a+(−a) = 0.'},
+    {id:15, title:'Множення вектора на число', blurb:'Вектор ka, колінеарність, середина відрізка через вектори.',
+     facts:'|ka| = |k|·|a|; ka співнапрямлений з a при k > 0 і протилежно напрямлений при k < 0. Координати ka = (ka1; ka2). Якщо a ≠ 0 і b колінеарний a, то існує k таке, що b = ka; за координатами — пропорційність b1 = k·a1, b2 = k·a2. Властивості: (km)a = k(ma), (k+m)a = ka + ma, k(a+b) = ka + kb. Середина M відрізка AB: XM = ½(XA + XB). Якщо AM : MB = m : n, то XM = (n/(m+n))·XA + (m/(m+n))·XB.'},
+    {id:16, title:'Скалярний добуток векторів', blurb:'Кут між векторами, скалярний добуток, перпендикулярність і косинус кута.',
+     facts:'a·b = |a|·|b|·cos φ, де φ — кут між векторами (0° ≤ φ ≤ 180°). У координатах a·b = a1b1 + a2b2. Скалярний квадрат a² = |a|². Для ненульових векторів a·b = 0 тоді й тільки тоді, коли a ⊥ b. cos φ = (a·b)/(|a|·|b|). Добуток додатний при гострому куті й від’ємний при тупому. Властивості: a·b = b·a, (ka)·b = k(a·b), a·(b+c) = a·b + a·c.'},
+  ]},
+  { id:'g-s5', title:'§5. Геометричні перетворення', topics:[
+    {id:17, title:'Рух (переміщення) фігури. Паралельне перенесення', blurb:'Що таке перетворення й рух, рівні фігури, перенесення на вектор.',
+     facts:'Перетворення фігури, що зберігає відстані між точками, — рух (переміщення). Дві фігури рівні, якщо існує рух, який переводить одну в іншу. Паралельне перенесення на вектор a: точка X переходить у X1, де XX1 = a; це рух. Якщо (x;y) → (x+m; y+n), то це перенесення на вектор (m;n). Образ прямої — пряма, відрізка — рівний відрізок, кута — рівний кут, трикутника — рівний трикутник, кола — коло того самого радіуса. Тотожне перетворення — теж рух.'},
+    {id:18, title:'Осьова симетрія', blurb:'Симетричні точки й фігури відносно прямої, осі симетрії фігур.',
+     facts:'Точки A і A1 симетричні відносно прямої l, якщо l — серединний перпендикуляр відрізка AA1; точки самої прямої симетричні самі собі. Осьова симетрія — рух. Відносно осі абсцис (x;y) → (x;−y); відносно осі ординат (x;y) → (−x;y). Осі симетрії: рівнобедрений трикутник — 1, рівносторонній — 3, квадрат — 4, коло — безліч. Типова ідея задач: найкоротший шлях через точку на прямій знаходять, відбивши точку відносно прямої.'},
+    {id:19, title:'Центральна симетрія. Поворот', blurb:'Симетрія відносно точки, поворот навколо точки на заданий кут.',
+     facts:'Точки A і A1 симетричні відносно точки O, якщо O — середина AA1. Центральна симетрія — рух; це поворот на 180°. Відносно початку координат (x;y) → (−x;−y). Образ прямої при центральній симетрії — паралельна пряма (або та сама, якщо пряма проходить через центр). Центри симетрії: середина відрізка, точка перетину діагоналей паралелограма, центр кола. Поворот на кут α навколо O: OX1 = OX і ∠XOX1 = α (за або проти годинникової стрілки); це рух.'},
+    {id:20, title:'Подібність фігур', blurb:'Перетворення подібності, коефіцієнт подібності, гомотетія, площі подібних фігур.',
+     facts:'Перетворення подібності змінює всі відстані в k разів (k — коефіцієнт подібності). Гомотетія з центром O і коефіцієнтом k: OX1 = k·OX; відстані змінюються в |k| разів; при k = −1 це центральна симетрія, при k = 1 — тотожне перетворення. Подібні фігури: одну отримують із другої композицією гомотетії та руху. Відношення площ подібних многокутників дорівнює k². Образ прямої — пряма (при гомотетії паралельна), кута — рівний кут, кола — коло.'},
+  ]},
+];
+
+const SUBJECTS = {
+  alg: { label:'Алгебра',   book:'«Алгебра. 9 клас»',   prefix:'',  chapters: ALG_CHAPTERS },
+  geo: { label:'Геометрія', book:'«Геометрія. 9 клас»', prefix:'g', chapters: GEO_CHAPTERS },
+};
+const TOPICS = [];
+Object.entries(SUBJECTS).forEach(([sid, s])=>{
+  s.total = 0;
+  s.chapters.forEach((ch, ci)=>{
+    ch.topics.forEach(t=>{
+      t.subject = sid; t.n = t.id; t.key = s.prefix + t.id;
+      t.chapter = ch.title; t.chapterNo = ci + 1;
+      TOPICS.push(t); s.total++;
+    });
+  });
+});
+function getTopic(key){ return TOPICS.find(t => t.key === key); }
+
+/* ================= State ================= */
+const STORE_KEY = 'alg9_tutor_progress_v1';   // ключ збережено, щоб не втратити прогрес з алгебри
+const SUBJ_KEY  = 'tutor9_subject_v1';
+let progress = loadProgress();
+let activeSubject = loadSubject();
+let activeKey = null;
+let activeTab = 'explain'; // explain | homework | quiz
+let pendingImage = null;   // фото, яке ще не надіслано
+const conversations = {};  // "key::tab" -> [{role, content}]
+
+function loadProgress(){
+  try{ const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : { done:{} }; }
+  catch(e){ return { done:{} }; }
+}
+function saveProgress(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(progress)); }catch(e){} }
+function loadSubject(){
+  try{ const s = localStorage.getItem(SUBJ_KEY); return SUBJECTS[s] ? s : 'geo'; }
+  catch(e){ return 'geo'; }
+}
+function saveSubject(){ try{ localStorage.setItem(SUBJ_KEY, activeSubject); }catch(e){} }
+
+/* ================= Render: rail ================= */
+function renderRail(){
+  const subj = document.getElementById('subj');
+  subj.innerHTML = '';
+  Object.entries(SUBJECTS).forEach(([sid, s])=>{
+    const b = document.createElement('button');
+    b.textContent = s.label;
+    b.className = sid === activeSubject ? 'active' : '';
+    b.setAttribute('aria-pressed', sid === activeSubject ? 'true' : 'false');
+    b.addEventListener('click', ()=>{
+      if(sid === activeSubject) return;
+      activeSubject = sid; saveSubject(); activeKey = null; activeTab = 'explain';
+      renderRail(); renderTopicArea(); resetLabel();
+    });
+    subj.appendChild(b);
+  });
+
+  const wrap = document.getElementById('chapters');
+  wrap.innerHTML = '';
+  SUBJECTS[activeSubject].chapters.forEach(ch=>{
+    const head = document.createElement('div');
+    head.className = 'chapter-head';
+    head.textContent = ch.title;
+    wrap.appendChild(head);
+    const box = document.createElement('div');
+    box.className = 'chapter';
+    ch.topics.forEach(t=>{
+      const btn = document.createElement('button');
+      const done = !!progress.done[t.key];
+      btn.className = 'topic-btn' + (t.key === activeKey ? ' active':'') + (done ? ' done':'');
+      btn.innerHTML = `<span class="num">${done ? '✓' : t.n}</span><span class="ttl">${escapeHtml(t.title)}</span>`;
+      btn.addEventListener('click', ()=> selectTopic(t.key));
+      box.appendChild(btn);
+    });
+    wrap.appendChild(box);
+  });
+  updateProgressBar();
+}
+function updateProgressBar(){
+  const s = SUBJECTS[activeSubject];
+  const done = TOPICS.filter(t => t.subject === activeSubject && progress.done[t.key]).length;
+  document.getElementById('progressText').textContent = `${done} / ${s.total}`;
+  document.getElementById('progressFill').style.width = (done / s.total * 100) + '%';
+}
+
+/* ================= Render: main topic area ================= */
+function selectTopic(key){
+  activeKey = key;
+  activeTab = 'explain';
+  renderRail();
+  renderTopicArea();
+  if(window.matchMedia('(max-width: 860px)').matches){
+    document.getElementById('mainArea').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+function renderTopicArea(){
+  const area = document.getElementById('topicArea');
+  const crumbs = document.getElementById('crumbs');
+  if(!activeKey){
+    const s = SUBJECTS[activeSubject];
+    crumbs.textContent = 'Оберіть тему зліва';
+    area.innerHTML = `<div class="topic-card"><div class="empty-state">
+      Оберіть пункт підручника ${escapeHtml(s.book)} у списку зліва — я допоможу розібратися в темі, розв’язати
+      домашнє завдання крок за кроком або перевірити себе міні-тестом.</div></div>`;
+    return;
+  }
+  const t = getTopic(activeKey);
+  crumbs.innerHTML = `<b>${escapeHtml(t.chapter)}</b> · Пункт ${t.n}`;
+  const done = !!progress.done[t.key];
+
+  area.innerHTML = `
+    <div class="topic-card">
+      <h1 class="topic-title">${t.n}. ${escapeHtml(t.title)}</h1>
+      <p class="topic-blurb">${escapeHtml(t.blurb)}</p>
+      <label class="mark-done">
+        <input type="checkbox" id="doneCheck" ${done?'checked':''}>
+        Позначити пункт як пройдений
+      </label>
+      <div class="tabs" id="tabs">
+        <button class="tab" data-tab="explain">Поясни тему</button>
+        <button class="tab" data-tab="homework">Допоможи з домашнім завданням</button>
+        <button class="tab" data-tab="quiz">Перевір себе</button>
+      </div>
+    </div>
+    <div id="panelWrap"></div>
+  `;
+  document.getElementById('doneCheck').addEventListener('change', e=>{
+    progress.done[t.key] = e.target.checked;
+    saveProgress(); renderRail();
+  });
+  document.querySelectorAll('#tabs .tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.tab === activeTab);
+    btn.addEventListener('click', ()=>{ activeTab = btn.dataset.tab; renderTopicArea(); });
+  });
+  renderPanel(t);
+}
+
+function renderPanel(t){
+  const wrap = document.getElementById('panelWrap');
+  const isGeo = t.subject === 'geo';
+  if(activeTab === 'quiz'){
+    wrap.innerHTML = `
+      <div class="panel">
+        <p class="panel-hint">Я складу задачу за темою «${escapeHtml(t.title)}». Спочатку розв’яжи сам(а) на чернетці${isGeo ? ' і зроби рисунок' : ''} — потім тисни «Показати підказку» або «Показати відповідь».</p>
+        <div id="quizArea"><div class="empty-state">Натисни кнопку нижче, щоб отримати задачу.</div></div>
+        <div class="quiz-actions">
+          <button class="ghost-btn primary" id="genQuizBtn">Дати задачу за темою</button>
+        </div>
+      </div>`;
+    document.getElementById('genQuizBtn').addEventListener('click', ()=>generateQuiz(t));
+    return;
+  }
+
+  const key = t.key + '::' + activeTab;
+  if(!conversations[key]) conversations[key] = [];
+  const hint = activeTab === 'explain'
+    ? 'Я поясню тему своїми словами, з прикладами і запитаннями по ходу — не просто перекажу параграф.'
+    : '<b>Важливо:</b> надішли умову задачі (текстом або 📷 фото) та те, що вже пробував(ла). Я розберу задачу разом із тобою навідними запитаннями, а не розв’яжу замість тебе.';
+  const chips = activeTab === 'explain'
+    ? ['Поясни з самого початку', 'Наведи приклад', 'У чому тут складність для мене?']
+    : ['Я не знаю, з чого почати', 'Перевір моє розв’язання', 'Дай підказку, не розв’язання'];
+  if(isGeo && activeTab === 'homework') chips.push('Допоможи зробити рисунок');
+
+  wrap.innerHTML = `
+    <div class="panel">
+      <p class="panel-hint">${hint}</p>
+      <div class="chat-log" id="chatLog"></div>
+      <div class="quick-row" id="quickRow"></div>
+      <div id="attachPreview" class="attach-preview" hidden></div>
+      <div class="composer">
+        ${activeTab==='homework' ? '<button class="attach-btn" id="attachBtn" type="button" title="Додати фото задачі" aria-label="Додати фото задачі">📷</button><input type="file" id="photoInput" accept="image/*" hidden>' : ''}
+        <label for="msgInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Повідомлення</label>
+        <textarea id="msgInput" rows="1" placeholder="${activeTab==='explain' ? 'Запитай про тему або попроси пояснити з прикладом…' : 'Опиши задачу своїми словами або встав умову…'}"></textarea>
+        <button class="send-btn" id="sendBtn">Надіслати</button>
+      </div>
+    </div>`;
+
+  const chipsRow = document.getElementById('quickRow');
+  chips.forEach(c=>{
+    const b = document.createElement('button');
+    b.className = 'quick-chip'; b.textContent = c;
+    b.addEventListener('click', ()=> sendMessage(t, c));
+    chipsRow.appendChild(b);
+  });
+
+  renderChatLog(key);
+  const input = document.getElementById('msgInput');
+  const sendBtn = document.getElementById('sendBtn');
+  pendingImage = null;
+  const attachBtn = document.getElementById('attachBtn');
+  const photoInput = document.getElementById('photoInput');
+  const preview = document.getElementById('attachPreview');
+  function renderPreview(){
+    if(!preview) return;
+    if(!pendingImage){ preview.hidden = true; preview.innerHTML = ''; return; }
+    preview.hidden = false;
+    preview.innerHTML = `<img src="${pendingImage.dataUrl}" alt="Фото задачі"><span>Фото додано</span><button type="button" id="removePhoto">Прибрати</button>`;
+    document.getElementById('removePhoto').addEventListener('click', ()=>{ pendingImage = null; renderPreview(); });
+  }
+  if(attachBtn && photoInput){
+    attachBtn.addEventListener('click', ()=> photoInput.click());
+    photoInput.addEventListener('change', async ()=>{
+      const f = photoInput.files && photoInput.files[0];
+      photoInput.value = '';
+      if(!f) return;
+      attachBtn.disabled = true;
+      try{ pendingImage = await prepareImage(f); renderPreview(); }
+      catch(e){ pendingImage = null; renderPreview(); alert('Не вдалося обробити фото. Спробуй інше.'); }
+      finally{ attachBtn.disabled = false; }
+    });
+  }
+  sendBtn.addEventListener('click', ()=>{
+    const val = input.value.trim();
+    if(!val && !pendingImage) return;
+    const img = pendingImage; pendingImage = null; renderPreview();
+    input.value = ''; input.style.height = 'auto';
+    sendMessage(t, val || 'Ось фото задачі. Допоможи розібратися.', img);
+  });
+  input.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendBtn.click(); }
+  });
+  input.addEventListener('input', ()=>{
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+  });
+
+  if(conversations[key].length === 0){
+    const greet = activeTab === 'explain'
+      ? `Привіт! Розбираємо пункт «${t.title}». З чого хочеш почати: із самого поняття, з прикладу чи в тебе вже є запитання?`
+      : `Привіт! Надішли умову задачі за темою «${t.title}» — текстом або фото (кнопка 📷) — і те, що ти вже встиг(ла) спробувати, навіть якщо це просто думки вголос.${isGeo ? ' Якщо можеш, опиши й рисунок: які точки, відрізки й кути на ньому є.' : ''} Далі розберемося разом.`;
+    conversations[key].push({role:'assistant', content: greet, synthetic:true});
+    renderChatLog(key);
+  }
+}
+
+function renderChatLog(key){
+  const log = document.getElementById('chatLog');
+  if(!log) return;
+  log.innerHTML = '';
+  conversations[key].forEach(m=>{
+    const div = document.createElement('div');
+    div.className = 'msg ' + (m.role === 'user' ? 'student' : 'tutor');
+    div.innerHTML = `<span class="label">${m.role==='user' ? 'Ти' : 'Репетитор'}</span>` + (m.image ? `<img class="msg-img" src="${m.image.dataUrl}" alt="Фото задачі">` : '') + formatMsg(m.content);
+    log.appendChild(div);
+  });
+  log.scrollTop = log.scrollHeight;
+}
+
+/* ================= Зв’язок із сервером (Gemini на Render) ================= */
+const SERVER_BASE = 'https://gemini-api-server-dnzk.onrender.com';
+const SERVER_TIMEOUT_MS = 150000;   // безкоштовний Render може «прокидатися» до хвилини
+
+// «Будимо» сервер одразу при відкритті сторінки
+fetch(SERVER_BASE + '/health', {mode:'no-cors'}).catch(()=>{});
+
+// Стискаємо фото (довша сторона ≤ 1600 px, JPEG) — щоб швидко йшло на сервер і лишалося читабельним
+async function prepareImage(file){
+  const url = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((res, rej)=>{ const i = new Image(); i.onload = ()=>res(i); i.onerror = rej; i.src = url; });
+    const MAX = 1600;
+    const k = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    let q = 0.85, dataUrl = c.toDataURL('image/jpeg', q);
+    while(dataUrl.length > 2.5e6 && q > 0.4){ q -= 0.1; dataUrl = c.toDataURL('image/jpeg', q); }
+    return { dataUrl, mimeType:'image/jpeg', data: dataUrl.split(',')[1] };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function askServer(prompt, opts){
+  const onSlow = opts && opts.onSlow;
+  const images = (opts && opts.images) || [];
+  let lastErr = new Error('невідома помилка');
+  for(let attempt = 0; attempt < 2; attempt++){
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=> ctrl.abort(), SERVER_TIMEOUT_MS);
+    const slow = onSlow ? setTimeout(onSlow, 8000) : null;
+    try{
+      const resp = await fetch(SERVER_BASE + '/api/generate', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(images.length ? {prompt, images} : {prompt}),
+        signal: ctrl.signal
+      });
+      let data = null;
+      try{ data = await resp.json(); }catch(e){}
+      if(data && data.ok && data.text) return data.text;
+      lastErr = new Error((data && data.error) || ('HTTP ' + resp.status));
+    }catch(e){
+      lastErr = e;
+    }finally{
+      clearTimeout(timer); if(slow) clearTimeout(slow);
+    }
+  }
+  throw lastErr;
+}
+
+function extractJson(text){
+  let s = String(text).replace(/```json|```/gi, '').trim();
+  const i = s.indexOf('{'), j = s.lastIndexOf('}');
+  if(i < 0 || j <= i) throw new Error('no json');
+  return JSON.parse(s.slice(i, j + 1));
+}
+
+function systemPromptFor(t, tab){
+  const s = SUBJECTS[t.subject];
+  const isGeo = t.subject === 'geo';
+  const subjectName = isGeo ? 'геометрії' : 'алгебри';
+  const base = `Ти — терплячий репетитор з ${subjectName} для українського 9 класу, працюєш строго за підручником
+Мерзляка А. Г. і Якіра М. С. ${s.book} (§ ${t.chapterNo}, пункт ${t.n}: «${t.title}»).
+Тема пункту: ${t.blurb}
+${t.facts ? `\nОпорні твердження підручника з цього пункту (вважай їх істинними, користуйся ними):\n${t.facts}\n` : ''}
+ГОЛОВНЕ ПРАВИЛО: ніколи не давай одразу готове розв’язання або готову відповідь, навіть якщо учень просить.
+Твоя робота — підвести учня до розуміння, а не розв’язати замість нього. Дій як хороший репетитор біля дошки:
+1) Спочатку зрозумій, що учень уже знає і де саме затримка — за потреби постав одне уточнювальне запитання.
+2) Веди маленькими кроками: став навідні запитання, пропонуй учневі зробити наступний крок самостійно.
+3) Якщо учень помилився — не кажи прямо "неправильно", допоможи йому самому знайти й зрозуміти помилку.
+4) Повне розв’язання можна показати лише якщо учень уже кілька разів пробував сам і явно просить фінальну
+   перевірку — і навіть тоді супроводжуй розв’язання поясненням "чому", а не лише формулами.
+5) Пиши компактно (зазвичай 3-6 речень), доброзичливо, українською мовою, без канцеляриту.
+   Математику пиши звичайним рядком: x^2, sqrt(x), <= , >=, використовуй ², ³, √, ≤, ≥, ± де доречно.
+6) Хвали за правильні кроки коротко й по суті, не будь приторним.${isGeo ? `
+7) Ти не можеш показати рисунок, тому проси учня накреслити його і описати: які точки, відрізки, кути на ньому позначені.
+   Для кутів і фігур пиши ∠ABC, △ABC, градуси як 30°, вектори як "вектор AB". Не вигадуй даних, яких немає в умові.
+   Перш ніж застосувати теорему, запитай учня, які елементи трикутника йому відомі й які треба знайти.` : ''}`;
+
+  if(tab === 'explain'){
+    return base + `\n\nРежим: "Поясни тему". Учень хоче розібратися в новій темі з підручника. Пояснюй поняття
+своїми словами, з наочним прикладом, але чергуй пояснення з короткими перевірними запитаннями
+("а як думаєш, чому...", "спробуй сам продовжити..."), щоб учень не просто читав, а думав.`;
+  }
+  return base + `\n\nРежим: "Допоможи з домашнім завданням". Учень надіслав свою задачу або її частину. Не розв’язуй
+задачу повністю. Допоможи визначити, що потрібно знайти, який метод із цього пункту підходить, і дай учневі
+зробити наступний крок самостійно. Якщо учень надіслав своє розв’язання — спочатку оціни, де воно правильне,
+і м’яко вкажи напрям, де шукати помилку, не називаючи її прямо одразу.
+
+Якщо учень надіслав ФОТО задачі (або свого розв’язання):
+1) Спочатку перепиши умову текстом (і, для геометрії, коротко опиши, що бачиш на рисунку), щоб учень підтвердив, що ти прочитав правильно. Якщо щось нечітко — запитай, а не вгадуй.
+2) НЕ розв’язуй задачу і не давай відповіді, навіть якщо вона видна на фото чи учень просить. Це розбір, а не розв’язання.
+3) Розбери задачу разом: що дано, що знайти, яке твердження/метод з цього пункту тут працює. Потім постав ОДНЕ навідне запитання або запропонуй ОДИН наступний крок для учня.
+4) Якщо на фото є розв’язання учня — відзнач, що в ньому правильно, і м’яко вкажи, у якому рядку/кроці варто перевірити, не виправляючи за нього.`;
+}
+
+async function sendMessage(t, text, image){
+  const key = t.key + '::' + activeTab;
+  conversations[key].push({role:'user', content:text, image: image || undefined});
+  renderChatLog(key);
+  await runTutorTurn(t, key);
+}
+
+async function runTutorTurn(t, key){
+  const tabAtStart = activeTab;
+  const log = document.getElementById('chatLog');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg tutor';
+  typingDiv.innerHTML = `<span class="label">Репетитор</span><div class="typing"><span></span><span></span><span></span></div>`;
+  if(log){ log.appendChild(typingDiv); log.scrollTop = log.scrollHeight; }
+
+  const sys = systemPromptFor(t, tabAtStart);
+  const transcript = conversations[key]
+    .filter(m => !m.synthetic)
+    .map(m => (m.role === 'user' ? 'Учень: ' : 'Репетитор: ') + m.content)
+    .join('\n\n');
+  const lastImg = [...conversations[key]].reverse().find(m => m.image);
+  const images = lastImg ? [{mimeType: lastImg.image.mimeType, data: lastImg.image.data}] : [];
+  const imgNote = images.length
+    ? '\n\nДо цього запиту додано ФОТО, яке учень надіслав (воно стосується діалогу вище). Якщо ти не бачиш зображення або воно нечитабельне — прямо скажи про це й попроси переслати чіткіше, нічого не вигадуй.'
+    : '';
+  const prompt = sys + '\n\nДіалог досі:\n\n' + transcript + imgNote +
+    '\n\nНапиши наступну репліку Репетитора — лише текст репліки, без префікса «Репетитор:».';
+
+  const sendBtn = document.getElementById('sendBtn');
+  if(sendBtn) sendBtn.disabled = true;
+
+  try{
+    let text = await askServer(prompt, {
+      images,
+      onSlow: ()=>{
+        if(typingDiv.isConnected){
+          typingDiv.innerHTML = `<span class="label">Репетитор</span><p>Сервер прокидається, це може тривати до хвилини…</p><div class="typing"><span></span><span></span><span></span></div>`;
+        }
+      }
+    });
+    text = text.replace(/^\s*Репетитор:\s*/i, '').trim();
+    conversations[key].push({role:'assistant', content: text});
+  }catch(e){
+    conversations[key].push({role:'assistant', content: 'Не вдалося отримати відповідь від сервера. Зачекай хвилину й надішли ще раз.'});
+  }finally{
+    const nowBtn = document.getElementById('sendBtn');
+    if(nowBtn) nowBtn.disabled = false;
+    renderChatLog(key);
+  }
+}
+
+/* ================= Quiz mode ================= */
+async function generateQuiz(t){
+  const area = document.getElementById('quizArea');
+  area.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+  const s = SUBJECTS[t.subject];
+  const isGeo = t.subject === 'geo';
+  const prompt = `Ти складаєш ОДНУ тренувальну задачу для українського 9 класу за підручником Мерзляка/Якіра ${s.book},
+§ ${t.chapterNo}, пункт ${t.n}: «${t.title}» (${t.blurb}).
+${t.facts ? `Опорні твердження з пункту (вважай їх істинними):\n${t.facts}\n` : ''}Рівень — середній (не найлегший, не олімпіадний). Числа добирай так, щоб відповідь була зручною
+(цілі числа, прості дроби або прості корені), і перевір, що задача має розв’язок і відповідь правильна.
+${isGeo ? 'Умову сформулюй так, щоб її можна було зрозуміти без рисунка; у полі "figure" коротко опиши, що має накреслити учень.\n' : ''}Відповідай СТРОГО у форматі JSON без будь-яких пояснень до або після, без markdown-обрамлення:
+{
+  "problem": "текст задачі українською, компактно",
+  ${isGeo ? '"figure": "одне речення: що накреслити (фігура, позначення, відомі величини)",\n  ' : ''}"hint": "одна навідна підказка, що не розкриває розв’язання",
+  "answer": "коротка фінальна відповідь",
+  "explanation": "3-5 речень чому це так, хід розв’язання крок за кроком"
+}
+Математику пиши звичайним текстом (x^2, sqrt, <=, >=, ², ³, √, ≤, ≥, °).`;
+
+  const slowTimer = setTimeout(()=>{
+    if(area.isConnected) area.innerHTML = `<p class="panel-hint">Сервер прокидається, це може тривати до хвилини…</p><div class="typing"><span></span><span></span><span></span></div>`;
+  }, 8000);
+  try{
+    let data = null;
+    for(let i = 0; i < 2 && !data; i++){
+      try{ data = extractJson(await askServer(prompt)); }catch(e){ if(i === 1) throw e; }
+    }
+    renderQuizCard(t, data);
+  }catch(e){
+    area.innerHTML = `<div class="empty-state">Не вдалося скласти задачу. Спробуй ще раз.</div>`;
+  }finally{
+    clearTimeout(slowTimer);
+  }
+}
+
+function renderQuizCard(t, data){
+  const area = document.getElementById('quizArea');
+  area.innerHTML = `
+    <div class="quiz-card">
+      <p class="quiz-q">${formatMsg(data.problem || '')}</p>
+      ${data.figure ? `<p class="quiz-fig"><b>Накресли.</b> ${escapeHtml(data.figure)}</p>` : ''}
+      <div class="quiz-actions">
+        <button class="ghost-btn" id="hintBtn">Показати підказку</button>
+        <button class="ghost-btn" id="answerBtn">Показати відповідь і розбір</button>
+      </div>
+      <div id="hintBox"></div>
+      <div id="answerBox"></div>
+    </div>`;
+  document.getElementById('hintBtn').addEventListener('click', ()=>{
+    document.getElementById('hintBox').innerHTML = `<div class="reveal"><span class="k">Підказка.</span> ${formatMsg(data.hint||'')}</div>`;
+  });
+  document.getElementById('answerBtn').addEventListener('click', ()=>{
+    document.getElementById('answerBox').innerHTML = `<div class="reveal">
+      <span class="k">Відповідь.</span> ${formatMsg(data.answer||'')}
+      <span class="k">Розбір.</span> ${formatMsg(data.explanation||'')}
+    </div>`;
+  });
+}
+
+/* ================= Utils ================= */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatMsg(raw){
+  let s = escapeHtml(raw || '');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const lines = s.split(/\n/);
+  let html = ''; let inList = false;
+  for(const line of lines){
+    const trimmed = line.trim();
+    if(/^[-•]\s+/.test(trimmed)){
+      if(!inList){ html += '<ul>'; inList = true; }
+      html += '<li>' + trimmed.replace(/^[-•]\s+/, '') + '</li>';
+    }else{
+      if(inList){ html += '</ul>'; inList = false; }
+      if(trimmed === ''){ continue; }
+      html += '<p>' + line + '</p>';
+    }
+  }
+  if(inList) html += '</ul>';
+  return html || '<p></p>';
+}
+
+/* Скидання прогресу у два кліки: вікна confirm() у переглядачі не показуються */
+let resetArmed = false, resetTimer = null;
+const resetBtn = document.getElementById('resetProgressBtn');
+function resetLabel(){
+  resetArmed = false; clearTimeout(resetTimer);
+  resetBtn.classList.remove('armed');
+  resetBtn.textContent = 'Скинути прогрес: ' + SUBJECTS[activeSubject].label.toLowerCase();
+}
+resetBtn.addEventListener('click', ()=>{
+  if(!resetArmed){
+    resetArmed = true;
+    resetBtn.classList.add('armed');
+    resetBtn.textContent = 'Точно скинути? Натисни ще раз';
+    resetTimer = setTimeout(resetLabel, 4000);
+    return;
+  }
+  TOPICS.filter(t => t.subject === activeSubject).forEach(t => { delete progress.done[t.key]; });
+  saveProgress(); resetLabel(); renderRail(); renderTopicArea();
+});
+
+resetLabel();
+renderRail();
+renderTopicArea();
+</script>
+
+</body></html>
