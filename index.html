@@ -792,7 +792,7 @@ const FIG_GEO = `
 РИСУНКИ. Ти можеш показати учневі рисунок до умови: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного рисунка на відповідь. Якщо учень просить накреслити чи показати рисунок, а також коли в задачі є фігура (трикутник, коло) — ОБОВ’ЯЗКОВО додай блок <<FIG ... FIG>>. Малюй ЛИШЕ те, що дано в умові: жодних побудов і величин із розв’язання, шукану величину познач у "ask". Числа мають бути узгодженими (нерівність трикутника!).
 Типи рисунків:
 1) Трикутник: <<FIG {"type":"triangle","vertices":["A","B","C"],"sides":{"AB":5,"BC":7},"angles":{"B":60},"show":["AB","BC","B"],"ask":["AC"]} FIG>>
-   Задай елементи, що однозначно визначають трикутник (3 сторони; 2 сторони й кут; сторона й 2 кути). "show" — що підписати числами, "ask" — що позначити як x, y (сторони) або α, β (кути), "labels" — власні підписи, напр. {"AB":"c"}. Додатково: "extra":[{"line":"height" або "median" або "bisector","from":"B"}] — лише якщо така лінія є в умові; "circumcircle":true, "incircle":true.
+   Задай елементи, що однозначно визначають трикутник (3 сторони; 2 сторони й кут; сторона й 2 кути); якщо даних замало (напр., лише сторона й протилежний кут) — усе одно малюй: рисунок буде схематичним, підписуються лише дані з умови. "show" — що підписати числами, "ask" — що позначити як x, y (сторони) або α, β (кути), "labels" — власні підписи, напр. {"AB":"c"}. Додатково: "extra":[{"line":"height" або "median" або "bisector","from":"B"}] — лише якщо така лінія є в умові; "circumcircle":true (з центром O; щоб позначити радіус R, додай "R" до "ask"), "incircle":true.
 2) Коло: <<FIG {"type":"circle","center":"O","points":{"A":30,"B":140,"C":250},"chords":["AB","BC"],"radii":["A"],"label":"R = 5"} FIG>> (points — кути в градусах на колі; chords — пари точок: хорди й сторони вписаних фігур).
 3) Одиничне півколо для sin, cos кута від 0° до 180°: <<FIG {"type":"semicircle","angle":120} FIG>>
 `;
@@ -825,6 +825,7 @@ function figTriangle(sp){
     if(s.length === 2 && i >= 0 && [...s].every(c => v.includes(c))){ sd[i] = +sp.sides[k]; given.push(norm(s)); }
   }
   for(const k in (sp.angles || {})){ const i = v.indexOf(k); if(i >= 0){ an[i] = +sp.angles[k]; given.push(k); } }
+  const solve = () => {
   for(let it = 0; it < 6; it++){
     if(an.filter(x => x != null).length === 2){ an[an.indexOf(null)] = 180 - an.reduce((s, x) => s + (x || 0), 0); }
     for(let i = 0; i < 3; i++){
@@ -839,16 +840,33 @@ function figTriangle(sp){
       if(an[i] == null && sd.every(x => x != null)) an[i] = Math.acos(Math.max(-1, Math.min(1, (sd[j] ** 2 + sd[k] ** 2 - sd[i] ** 2) / (2 * sd[j] * sd[k])))) / R;
     }
   }
+  };
+  const done = () => sd.every(x => x > 0) && an.every(x => x > 0);
+  solve();
+  let approx = false;   // даних замало для єдиного трикутника — малюємо схематично
+  if(!done()){
+    approx = true;
+    const nk = an.filter(x => x != null).length, ns = sd.filter(x => x != null).length;
+    if(nk === 0){
+      if(ns >= 2){ const k = sd.findIndex(x => x == null); an[k >= 0 ? k : 0] = 62; }
+      else { an[0] = 66; an[1] = 54; an[2] = 60; }
+    } else if(nk === 1){
+      const i = an.findIndex(x => x != null), j = (i + 1) % 3;
+      an[j] = Math.max(8, Math.min((180 - an[i]) / 2 + 12, 172 - an[i]));
+    }
+    solve();
+    if(!done() && sd.every(x => x == null)){ sd[0] = 6; solve(); }
+  }
   if(sd.some(x => !(x > 0)) || an.some(x => !(x > 0)) || Math.abs(an[0] + an[1] + an[2] - 180) > 0.5) return '';
   const [a, b, c] = sd, hp = (a + b + c) / 2, area = Math.sqrt(Math.max(0, hp * (hp - a) * (hp - b) * (hp - c)));
   const P = [[0, 0], [c, 0], [b * cos(an[0]), b * sin(an[0])]];
   const G = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3];
-  const bbox = [...P], circ = [];
+  const bbox = [...P], circ = []; let oc = null;
   if(sp.circumcircle){
     const [[x1, y1], [x2, y2], [x3, y3]] = P, d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
     const ux = ((x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2)) / d;
     const uy = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d;
-    const r = Math.hypot(x1 - ux, y1 - uy); circ.push([ux, uy, r]); bbox.push([ux - r, uy - r], [ux + r, uy + r]);
+    const r = Math.hypot(x1 - ux, y1 - uy); circ.push([ux, uy, r]); oc = [ux, uy]; bbox.push([ux - r, uy - r], [ux + r, uy + r]);
   }
   if(sp.incircle) circ.push([(a * P[0][0] + b * P[1][0] + c * P[2][0]) / (2 * hp), (a * P[0][1] + b * P[1][1] + c * P[2][1]) / (2 * hp), area / hp]);
   const xs = bbox.map(p => p[0]), ys = bbox.map(p => p[1]);
@@ -857,15 +875,16 @@ function figTriangle(sp){
   const ox = (420 - (bx1 - bx0) * sc) / 2 - bx0 * sc, oy = (300 + (by1 - by0) * sc) / 2 + by0 * sc;
   const T = p => [ox + p[0] * sc, oy - p[1] * sc], S = P.map(T), g = T(G);
 
-  const show = new Set((sp.show || given).map(norm)), ask = (sp.ask || []).map(norm), lab = {};
+  const show = new Set((sp.show || given).map(norm)), ask = (sp.ask || []).map(norm).filter(k => k !== 'R'), askR = (sp.ask || []).some(k => norm(k) === 'R'), lab = {};
   for(const k in (sp.labels || {})) lab[norm(k)] = String(sp.labels[k]);
   let xi = 0, ai = 0;
   const labelFor = (key, isAngle, val) => lab[key] != null ? lab[key]
     : ask.includes(key) ? (isAngle ? 'αβγ'[ai++] : 'xyz'[xi++])
-    : show.has(key) ? fnum(val) + (isAngle ? '°' : '') : null;
+    : show.has(key) && (!approx || given.includes(key)) ? fnum(val) + (isAngle ? '°' : '') : null;
 
   let out = `<polygon class="f-s" points="${S.map(p => fnum(p[0]) + ',' + fnum(p[1])).join(' ')}"/>`;
   for(const [cx, cy, r] of circ){ const q = T([cx, cy]); out += `<circle class="f-a" cx="${fnum(q[0])}" cy="${fnum(q[1])}" r="${fnum(r * sc)}"/>`; }
+  if(oc){ const q = T(oc); out += fdot(q) + ftxt(q[0] + 11, q[1] - 11, 'O'); if(askR){ out += fline(q, S[0], 'f-a') + ftxt(...fpush([(q[0] + S[0][0]) / 2, (q[1] + S[0][1]) / 2], g, 12), 'R', 'f-v'); } }
   for(const e of (sp.extra || [])){
     const i = v.indexOf(e.from); if(i < 0) continue;
     const j = (i + 1) % 3, k = (i + 2) % 3; let F;
