@@ -493,6 +493,7 @@ function renderPanel(t){
       <div id="attachPreview" class="attach-preview" hidden></div>
       <div class="composer">
         ${activeTab==='homework' ? '<button class="attach-btn" id="attachBtn" type="button" title="Додати фото задачі" aria-label="Додати фото задачі">📷</button><input type="file" id="photoInput" accept="image/*" hidden>' : ''}
+        <button class="attach-btn" id="drawBtn" type="button" title="Накреслити рисунок" aria-label="Накреслити рисунок">📐</button>
         <label for="msgInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Повідомлення</label>
         <textarea id="msgInput" rows="1" placeholder="${activeTab==='explain' ? 'Запитай про тему або попроси пояснити з прикладом…' : 'Опиши задачу своїми словами або встав умову…'}"></textarea>
         <button class="send-btn" id="sendBtn">Надіслати</button>
@@ -508,6 +509,7 @@ function renderPanel(t){
   });
 
   renderChatLog(key);
+  document.getElementById('drawBtn').addEventListener('click', ()=> drawFigure(t, key));
   const input = document.getElementById('msgInput');
   const sendBtn = document.getElementById('sendBtn');
   pendingImage = null;
@@ -711,6 +713,8 @@ async function runTutorTurn(t, key){
     });
     text = text.replace(/^\s*Репетитор:\s*/i, '').trim();
     conversations[key].push({role:'assistant', content: text});
+    const lu = [...conversations[key]].reverse().find(m => m.role === 'user');
+    if(lu && FIG_ASK.test(lu.content || '') && !/FIG\s*>>/i.test(text)) await drawFigure(t, key, true);
   }catch(e){
     conversations[key].push({role:'assistant', content: 'Не вдалося отримати відповідь від сервера. Зачекай хвилину й надішли ще раз.'});
   }finally{
@@ -785,7 +789,7 @@ function renderQuizCard(t, data){
 
 /* ================= Рисунки (SVG): трикутники, кола, півколо, графіки ================= */
 const FIG_GEO = `
-РИСУНКИ. Ти можеш показати учневі рисунок до умови: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного рисунка на відповідь і лише коли він справді допомагає. Малюй ЛИШЕ те, що дано в умові: жодних побудов і величин із розв’язання, шукану величину познач у "ask". Числа мають бути узгодженими (нерівність трикутника!).
+РИСУНКИ. Ти можеш показати учневі рисунок до умови: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного рисунка на відповідь. Якщо учень просить накреслити чи показати рисунок, а також коли в задачі є фігура (трикутник, коло) — ОБОВ’ЯЗКОВО додай блок <<FIG ... FIG>>. Малюй ЛИШЕ те, що дано в умові: жодних побудов і величин із розв’язання, шукану величину познач у "ask". Числа мають бути узгодженими (нерівність трикутника!).
 Типи рисунків:
 1) Трикутник: <<FIG {"type":"triangle","vertices":["A","B","C"],"sides":{"AB":5,"BC":7},"angles":{"B":60},"show":["AB","BC","B"],"ask":["AC"]} FIG>>
    Задай елементи, що однозначно визначають трикутник (3 сторони; 2 сторони й кут; сторона й 2 кути). "show" — що підписати числами, "ask" — що позначити як x, y (сторони) або α, β (кути), "labels" — власні підписи, напр. {"AB":"c"}. Додатково: "extra":[{"line":"height" або "median" або "bisector","from":"B"}] — лише якщо така лінія є в умові; "circumcircle":true, "incircle":true.
@@ -799,7 +803,7 @@ ${'ГРАФІК'} функції: <<FIG {"type":"graph","fns":[{"expr":"x^2-4x+3
 const NO_LATEX = '\n\nВАЖЛИВО ПРО ФОРМАТ: НІКОЛИ не використовуй LaTeX і знак долара: ніяких $a$, \\alpha, \\angle, \\frac, \\sin, \\cdot. Пиши лише звичайний текст і символи Unicode: a, α, β, ∠A, △ABC, 30°, a²,  √3, ≤, ·, дріб як a/b, синус як sin α.';
 function figDocFor(subject){
   if(subject === 'geo') return NO_LATEX + '\n\n' + FIG_GEO + FIG_GRAPH;
-  return NO_LATEX + '\n\nРИСУНКИ. Ти можеш показати учневі графік: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного на відповідь і лише коли він справді допомагає; не показуй шуканих розв’язків.\n' + FIG_GRAPH;
+  return NO_LATEX + '\n\nРИСУНКИ. Ти можеш показати учневі графік: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного на відповідь. Якщо учень просить графік чи рисунок — ОБОВ’ЯЗКОВО додай блок; не показуй шуканих розв’язків.\n' + FIG_GRAPH;
 }
 
 const fnum = n => +(+n).toFixed(2);
@@ -987,7 +991,7 @@ function figGraph(sp){
 
 function figureHtml(spec){
   try{
-    if(typeof spec === 'string') spec = JSON.parse(spec);
+    if(typeof spec === 'string'){ const a = spec.indexOf('{'), b = spec.lastIndexOf('}'); spec = JSON.parse(spec.slice(a, b + 1).replace(/,\s*([}\]])/g, '$1')); }
     const f = { triangle: figTriangle, circle: figCircle, semicircle: figSemi, graph: figGraph }[spec && spec.type];
     const inner = f ? f(spec) : '';
     return inner ? `<div class="fig"><svg viewBox="0 0 420 300" role="img" aria-label="Рисунок до задачі">${inner}</svg></div>` : '';
@@ -996,7 +1000,7 @@ function figureHtml(spec){
 
 /* Текст із вкрапленими блоками <<FIG {...} FIG>> → HTML */
 function formatRich(raw){
-  const s = String(raw || ''), re = /<<FIG\s*([\s\S]*?)\s*FIG>>/g;
+  const s = String(raw || ''), re = /<<\s*FIG\s*([\s\S]*?)\s*FIG\s*>>/gi;
   let out = '', last = 0, m;
   while((m = re.exec(s))){
     out += formatMsg(s.slice(last, m.index)) + figureHtml(m[1].replace(/```json|```/gi, '').trim());
@@ -1004,6 +1008,38 @@ function formatRich(raw){
   }
   out += formatMsg(s.slice(last).replace(/<<FIG[\s\S]*$/, ''));
   return out.replace(/<p><\/p>/g, '') || '<p></p>';
+}
+
+
+/* Окремий запит: Gemini повертає ЛИШЕ опис рисунка — так він малюється надійно */
+const FIG_ASK = /накрес|намал|малюн|рисун|зобрази|креслен|візуаліз|схем|покаж\S*\s+(графік|трикутник|коло)/i;
+async function drawFigure(t, key, silent){
+  const log = document.getElementById('chatLog'), drawBtn = document.getElementById('drawBtn');
+  let typing = null;
+  if(!silent && log){
+    typing = document.createElement('div'); typing.className = 'msg tutor';
+    typing.innerHTML = `<span class="label">Репетитор</span><div class="typing"><span></span><span></span><span></span></div>`;
+    log.appendChild(typing); log.scrollTop = log.scrollHeight;
+  }
+  if(drawBtn) drawBtn.disabled = true;
+  try{
+    const transcript = conversations[key].filter(m => !m.synthetic)
+      .map(m => (m.role === 'user' ? 'Учень: ' : 'Репетитор: ') + String(m.content).replace(/<<\s*FIG[\s\S]*?FIG\s*>>/gi, '[рисунок]')).join('\n\n');
+    const lastImg = [...conversations[key]].reverse().find(m => m.image);
+    const images = lastImg ? [{mimeType: lastImg.image.mimeType, data: lastImg.image.data}] : [];
+    const prompt = `Ти допомагаєш репетитору з ${t.subject === 'geo' ? 'геометрії' : 'алгебри'} (9 клас). Тема: «${t.title}». Нижче діалог з учнем.
+Склади ОДИН рисунок до умови задачі (або до теми, якщо задачі ще немає): лише дані умови, без розв’язання і без шуканих величин (шукане познач у "ask").
+Відповідай ЛИШЕ одним JSON-об’єктом рисунка, без пояснень, без markdown і без <<FIG>>.` + figDocFor(t.subject) +
+      `\n\nДіалог:\n${transcript || '(діалог ще не почався — намалюй типовий рисунок до теми)'}`;
+    const data = extractJson(await askServer(prompt, {images}));
+    if(!figureHtml(data)) throw new Error('bad figure');
+    conversations[key].push({role: 'assistant', content: 'Ось рисунок.\n<<FIG ' + JSON.stringify(data) + ' FIG>>'});
+  }catch(e){
+    if(!silent) conversations[key].push({role: 'assistant', content: 'Не вдалося накреслити рисунок. Опиши умову докладніше (які сторони, кути, точки) і спробуй ще раз.'});
+  }finally{
+    if(drawBtn) drawBtn.disabled = false;
+    if(key === t.key + '::' + activeTab) renderChatLog(key);
+  }
 }
 
 /* ================= Utils ================= */
