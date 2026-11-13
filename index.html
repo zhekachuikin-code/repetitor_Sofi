@@ -187,6 +187,22 @@
   .ghost-btn.primary:hover{background:var(--ink-2);}
   .reveal{margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:14px;}
   .reveal .k{color:var(--amber); font-weight:600;}
+
+  /* ---------- Рисунки (SVG) ---------- */
+  .fig{margin:10px 0 4px; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:6px; text-align:center;}
+  .fig svg{display:block; margin:0 auto; width:100%; max-width:440px; height:auto;}
+  .f-s{stroke:var(--ink); stroke-width:2.2; fill:none; stroke-linejoin:round;}
+  .f-x{stroke:var(--red); stroke-width:1.8; fill:none; stroke-dasharray:6 4;}
+  .f-a{stroke:var(--amber); stroke-width:1.8; fill:none;}
+  .f-g{stroke:var(--grid); stroke-width:1;}
+  .f-ax{stroke:var(--text-soft); stroke-width:1.5;}
+  .f-t{fill:var(--text); font:600 14px var(--font-body);}
+  .f-v{fill:var(--ink); font:italic 600 15px var(--font-head);}
+  .f-l{fill:var(--text-soft); font:11.5px var(--font-body);}
+  .f-pt{fill:var(--red);}
+  .f-fn{fill:none; stroke-width:2.4; stroke-linejoin:round;}
+  .f-k0{stroke:var(--ink);} .f-k1{stroke:var(--red);} .f-k2{stroke:var(--green);}
+  .f-c0{fill:var(--ink);} .f-c1{fill:var(--red);} .f-c2{fill:var(--green);}
   .empty-state{color:var(--text-soft); font-size:14px; text-align:center; padding:30px 10px;}
 
   :focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
@@ -548,7 +564,7 @@ function renderChatLog(key){
   conversations[key].forEach(m=>{
     const div = document.createElement('div');
     div.className = 'msg ' + (m.role === 'user' ? 'student' : 'tutor');
-    div.innerHTML = `<span class="label">${m.role==='user' ? 'Ти' : 'Репетитор'}</span>` + (m.image ? `<img class="msg-img" src="${m.image.dataUrl}" alt="Фото задачі">` : '') + formatMsg(m.content);
+    div.innerHTML = `<span class="label">${m.role==='user' ? 'Ти' : 'Репетитор'}</span>` + (m.image ? `<img class="msg-img" src="${m.image.dataUrl}" alt="Фото задачі">` : '') + formatRich(m.content);
     log.appendChild(div);
   });
   log.scrollTop = log.scrollHeight;
@@ -632,16 +648,16 @@ ${t.facts ? `\nОпорні твердження підручника з цьо�
 5) Пиши компактно (зазвичай 3-6 речень), доброзичливо, українською мовою, без канцеляриту.
    Математику пиши звичайним рядком: x^2, sqrt(x), <= , >=, використовуй ², ³, √, ≤, ≥, ± де доречно.
 6) Хвали за правильні кроки коротко й по суті, не будь приторним.${isGeo ? `
-7) Ти не можеш показати рисунок, тому проси учня накреслити його і описати: які точки, відрізки, кути на ньому позначені.
+7) Рисунок до умови можеш показати блоком <<FIG ... FIG>> (див. нижче), а також проси учня самого накреслити його і описати: які точки, відрізки, кути на ньому позначені.
    Для кутів і фігур пиши ∠ABC, △ABC, градуси як 30°, вектори як "вектор AB". Не вигадуй даних, яких немає в умові.
    Перш ніж застосувати теорему, запитай учня, які елементи трикутника йому відомі й які треба знайти.` : ''}`;
 
   if(tab === 'explain'){
-    return base + `\n\nРежим: "Поясни тему". Учень хоче розібратися в новій темі з підручника. Пояснюй поняття
+    return base + figDocFor(t.subject) + `\n\nРежим: "Поясни тему". Учень хоче розібратися в новій темі з підручника. Пояснюй поняття
 своїми словами, з наочним прикладом, але чергуй пояснення з короткими перевірними запитаннями
 ("а як думаєш, чому...", "спробуй сам продовжити..."), щоб учень не просто читав, а думав.`;
   }
-  return base + `\n\nРежим: "Допоможи з домашнім завданням". Учень надіслав свою задачу або її частину. Не розв’язуй
+  return base + figDocFor(t.subject) + `\n\nРежим: "Допоможи з домашнім завданням". Учень надіслав свою задачу або її частину. Не розв’язуй
 задачу повністю. Допоможи визначити, що потрібно знайти, який метод із цього пункту підходить, і дай учневі
 зробити наступний крок самостійно. Якщо учень надіслав своє розв’язання — спочатку оціни, де воно правильне,
 і м’яко вкажи напрям, де шукати помилку, не називаючи її прямо одразу.
@@ -714,9 +730,12 @@ async function generateQuiz(t){
 § ${t.chapterNo}, пункт ${t.n}: «${t.title}» (${t.blurb}).
 ${t.facts ? `Опорні твердження з пункту (вважай їх істинними):\n${t.facts}\n` : ''}Рівень — середній (не найлегший, не олімпіадний). Числа добирай так, щоб відповідь була зручною
 (цілі числа, прості дроби або прості корені), і перевір, що задача має розв’язок і відповідь правильна.
-${isGeo ? 'Умову сформулюй так, щоб її можна було зрозуміти без рисунка; у полі "figure" коротко опиши, що має накреслити учень.\n' : ''}Відповідай СТРОГО у форматі JSON без будь-яких пояснень до або після, без markdown-обрамлення:
+${isGeo ? 'Умову сформулюй так, щоб її можна було зрозуміти без рисунка; у полі "figure" коротко опиши, що має накреслити учень.\n' : ''}Якщо рисунок допоможе зрозуміти умову, додай поле "fig" — сам JSON-об’єкт рисунка (формат описано нижче, але блок <<FIG>> НЕ пиши). Рисунок лише з даними умови, без розв’язання.${figDocFor(t.subject)}
+Відповідай СТРОГО у форматі JSON без будь-яких пояснень до або після, без markdown-обрамлення:
 {
   "problem": "текст задачі українською, компактно",
+  "fig": { необов’язковий JSON-об’єкт рисунка до умови },
+  "figSolution": { необов’язковий JSON-об’єкт рисунка до розбору (тут можна додати побудови з розв’язання) },
   ${isGeo ? '"figure": "одне речення: що накреслити (фігура, позначення, відомі величини)",\n  ' : ''}"hint": "одна навідна підказка, що не розкриває розв’язання",
   "answer": "коротка фінальна відповідь",
   "explanation": "3-5 речень чому це так, хід розв’язання крок за кроком"
@@ -744,7 +763,8 @@ function renderQuizCard(t, data){
   area.innerHTML = `
     <div class="quiz-card">
       <p class="quiz-q">${formatMsg(data.problem || '')}</p>
-      ${data.figure ? `<p class="quiz-fig"><b>Накресли.</b> ${escapeHtml(data.figure)}</p>` : ''}
+      ${data.fig ? figureHtml(data.fig) : ''}
+      ${data.figure && !data.fig ? `<p class="quiz-fig"><b>Накресли.</b> ${escapeHtml(data.figure)}</p>` : ''}
       <div class="quiz-actions">
         <button class="ghost-btn" id="hintBtn">Показати підказку</button>
         <button class="ghost-btn" id="answerBtn">Показати відповідь і розбір</button>
@@ -758,9 +778,231 @@ function renderQuizCard(t, data){
   document.getElementById('answerBtn').addEventListener('click', ()=>{
     document.getElementById('answerBox').innerHTML = `<div class="reveal">
       <span class="k">Відповідь.</span> ${formatMsg(data.answer||'')}
-      <span class="k">Розбір.</span> ${formatMsg(data.explanation||'')}
+      <span class="k">Розбір.</span> ${formatMsg(data.explanation||'')}${data.figSolution ? figureHtml(data.figSolution) : ''}
     </div>`;
   });
+}
+
+/* ================= Рисунки (SVG): трикутники, кола, півколо, графіки ================= */
+const FIG_GEO = `
+РИСУНКИ. Ти можеш показати учневі рисунок до умови: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного рисунка на відповідь і лише коли він справді допомагає. Малюй ЛИШЕ те, що дано в умові: жодних побудов і величин із розв’язання, шукану величину познач у "ask". Числа мають бути узгодженими (нерівність трикутника!).
+Типи рисунків:
+1) Трикутник: <<FIG {"type":"triangle","vertices":["A","B","C"],"sides":{"AB":5,"BC":7},"angles":{"B":60},"show":["AB","BC","B"],"ask":["AC"]} FIG>>
+   Задай елементи, що однозначно визначають трикутник (3 сторони; 2 сторони й кут; сторона й 2 кути). "show" — що підписати числами, "ask" — що позначити як x, y (сторони) або α, β (кути), "labels" — власні підписи, напр. {"AB":"c"}. Додатково: "extra":[{"line":"height" або "median" або "bisector","from":"B"}] — лише якщо така лінія є в умові; "circumcircle":true, "incircle":true.
+2) Коло: <<FIG {"type":"circle","center":"O","points":{"A":30,"B":140,"C":250},"chords":["AB","BC"],"radii":["A"],"label":"R = 5"} FIG>> (points — кути в градусах на колі; chords — пари точок: хорди й сторони вписаних фігур).
+3) Одиничне півколо для sin, cos кута від 0° до 180°: <<FIG {"type":"semicircle","angle":120} FIG>>
+`;
+const FIG_GRAPH = `
+${'ГРАФІК'} функції: <<FIG {"type":"graph","fns":[{"expr":"x^2-4x+3","label":"y = x² − 4x + 3"}],"xmin":-2,"xmax":6,"ymin":-2,"ymax":8,"points":[[1,0,"A"],[3,0,"B"]]} FIG>>
+   "expr": змінна x, дії + − * / ^, дужки, sin cos tan sqrt abs ln; "deg":true, якщо x у градусах. До 3 функцій. Для рисунка до умови дозволено графік лише того, що дано в умові (не показуй шуканих точок чи розв’язків).
+`;
+function figDocFor(subject){
+  if(subject === 'geo') return '\n\n' + FIG_GEO + FIG_GRAPH;
+  return '\n\nРИСУНКИ. Ти можеш показати учневі графік: встав в окремому рядку блок <<FIG {JSON} FIG>> — сайт сам його накреслить. Не більше одного на відповідь і лише коли він справді допомагає; не показуй шуканих розв’язків.\n' + FIG_GRAPH;
+}
+
+const fnum = n => +(+n).toFixed(2);
+const ftxt = (x, y, t, cls = 'f-t', anchor = 'middle') =>
+  `<text x="${fnum(x)}" y="${fnum(y)}" class="${cls}" text-anchor="${anchor}" dominant-baseline="central">${escapeHtml(t)}</text>`;
+const fline = (a, b, cls) => `<line class="${cls}" x1="${fnum(a[0])}" y1="${fnum(a[1])}" x2="${fnum(b[0])}" y2="${fnum(b[1])}"/>`;
+const fdot = p => `<circle class="f-pt" cx="${fnum(p[0])}" cy="${fnum(p[1])}" r="3.2"/>`;
+const fpush = (p, from, d) => { const dx = p[0] - from[0], dy = p[1] - from[1], n = Math.hypot(dx, dy) || 1; return [p[0] + dx / n * d, p[1] + dy / n * d]; };
+let figUid = 0;
+
+function figTriangle(sp){
+  const v = (sp.vertices || ['A', 'B', 'C']).map(String);
+  if(v.length !== 3) return '';
+  const norm = k => String(k).split('').sort().join('');
+  const R = Math.PI / 180, sin = d => Math.sin(d * R), cos = d => Math.cos(d * R);
+  const sd = [null, null, null], an = [null, null, null], given = [];
+  for(const k in (sp.sides || {})){
+    const s = String(k), i = v.findIndex(x => !s.includes(x));
+    if(s.length === 2 && i >= 0 && [...s].every(c => v.includes(c))){ sd[i] = +sp.sides[k]; given.push(norm(s)); }
+  }
+  for(const k in (sp.angles || {})){ const i = v.indexOf(k); if(i >= 0){ an[i] = +sp.angles[k]; given.push(k); } }
+  for(let it = 0; it < 6; it++){
+    if(an.filter(x => x != null).length === 2){ an[an.indexOf(null)] = 180 - an.reduce((s, x) => s + (x || 0), 0); }
+    for(let i = 0; i < 3; i++){
+      const j = (i + 1) % 3, k = (i + 2) % 3;
+      if(sd[i] != null && an[i] != null){
+        for(const m of [j, k]){
+          if(sd[m] == null && an[m] != null) sd[m] = sd[i] * sin(an[m]) / sin(an[i]);
+          else if(an[m] == null && sd[m] != null){ const q = sd[m] * sin(an[i]) / sd[i]; if(q <= 1) an[m] = Math.asin(q) / R; }
+        }
+      }
+      if(sd[i] == null && sd[j] != null && sd[k] != null && an[i] != null) sd[i] = Math.sqrt(sd[j] ** 2 + sd[k] ** 2 - 2 * sd[j] * sd[k] * cos(an[i]));
+      if(an[i] == null && sd.every(x => x != null)) an[i] = Math.acos(Math.max(-1, Math.min(1, (sd[j] ** 2 + sd[k] ** 2 - sd[i] ** 2) / (2 * sd[j] * sd[k])))) / R;
+    }
+  }
+  if(sd.some(x => !(x > 0)) || an.some(x => !(x > 0)) || Math.abs(an[0] + an[1] + an[2] - 180) > 0.5) return '';
+  const [a, b, c] = sd, hp = (a + b + c) / 2, area = Math.sqrt(Math.max(0, hp * (hp - a) * (hp - b) * (hp - c)));
+  const P = [[0, 0], [c, 0], [b * cos(an[0]), b * sin(an[0])]];
+  const G = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3];
+  const bbox = [...P], circ = [];
+  if(sp.circumcircle){
+    const [[x1, y1], [x2, y2], [x3, y3]] = P, d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+    const ux = ((x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2)) / d;
+    const uy = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d;
+    const r = Math.hypot(x1 - ux, y1 - uy); circ.push([ux, uy, r]); bbox.push([ux - r, uy - r], [ux + r, uy + r]);
+  }
+  if(sp.incircle) circ.push([(a * P[0][0] + b * P[1][0] + c * P[2][0]) / (2 * hp), (a * P[0][1] + b * P[1][1] + c * P[2][1]) / (2 * hp), area / hp]);
+  const xs = bbox.map(p => p[0]), ys = bbox.map(p => p[1]);
+  const bx0 = Math.min(...xs), bx1 = Math.max(...xs), by0 = Math.min(...ys), by1 = Math.max(...ys), pad = 50;
+  const sc = Math.min((420 - 2 * pad) / (bx1 - bx0 || 1), (300 - 2 * pad) / (by1 - by0 || 1));
+  const ox = (420 - (bx1 - bx0) * sc) / 2 - bx0 * sc, oy = (300 + (by1 - by0) * sc) / 2 + by0 * sc;
+  const T = p => [ox + p[0] * sc, oy - p[1] * sc], S = P.map(T), g = T(G);
+
+  const show = new Set((sp.show || given).map(norm)), ask = (sp.ask || []).map(norm), lab = {};
+  for(const k in (sp.labels || {})) lab[norm(k)] = String(sp.labels[k]);
+  let xi = 0, ai = 0;
+  const labelFor = (key, isAngle, val) => lab[key] != null ? lab[key]
+    : ask.includes(key) ? (isAngle ? 'αβγ'[ai++] : 'xyz'[xi++])
+    : show.has(key) ? fnum(val) + (isAngle ? '°' : '') : null;
+
+  let out = `<polygon class="f-s" points="${S.map(p => fnum(p[0]) + ',' + fnum(p[1])).join(' ')}"/>`;
+  for(const [cx, cy, r] of circ){ const q = T([cx, cy]); out += `<circle class="f-a" cx="${fnum(q[0])}" cy="${fnum(q[1])}" r="${fnum(r * sc)}"/>`; }
+  for(const e of (sp.extra || [])){
+    const i = v.indexOf(e.from); if(i < 0) continue;
+    const j = (i + 1) % 3, k = (i + 2) % 3; let F;
+    if(e.line === 'height'){
+      const [px, py] = P[j], dx = P[k][0] - px, dy = P[k][1] - py, t = ((P[i][0] - px) * dx + (P[i][1] - py) * dy) / (dx * dx + dy * dy);
+      F = [px + t * dx, py + t * dy];
+    } else if(e.line === 'median') F = [(P[j][0] + P[k][0]) / 2, (P[j][1] + P[k][1]) / 2];
+    else if(e.line === 'bisector'){ const t = sd[k] / (sd[k] + sd[j]); F = [P[j][0] + (P[k][0] - P[j][0]) * t, P[j][1] + (P[k][1] - P[j][1]) * t]; }
+    else continue;
+    const f = T(F), nm = e.name || { height: 'H', median: 'M', bisector: 'L' }[e.line];
+    out += fline(S[i], f, 'f-x') + fdot(f) + ftxt(...fpush(f, g, 13), nm);
+  }
+  for(let i = 0; i < 3; i++){
+    const j = (i + 1) % 3, k = (i + 2) % 3;
+    const mid = [(S[j][0] + S[k][0]) / 2, (S[j][1] + S[k][1]) / 2], sl = labelFor(norm(v[j] + v[k]), false, sd[i]);
+    if(sl != null) out += ftxt(...fpush(mid, g, 14), sl, 'f-v');
+    const al = labelFor(v[i], true, an[i]);
+    if(al != null){
+      const un = q => { const dx = q[0] - S[i][0], dy = q[1] - S[i][1], n = Math.hypot(dx, dy); return [dx / n, dy / n]; };
+      const u = un(S[j]), w = un(S[k]), r = an[i] < 35 ? 34 : 24, right = Math.abs(an[i] - 90) < 0.01;
+      const p1 = [S[i][0] + u[0] * r, S[i][1] + u[1] * r], p2 = [S[i][0] + w[0] * r, S[i][1] + w[1] * r];
+      out += right
+        ? `<path class="f-a" d="M${fnum(S[i][0] + u[0] * 14)} ${fnum(S[i][1] + u[1] * 14)} l${fnum(w[0] * 14)} ${fnum(w[1] * 14)} l${fnum(-u[0] * 14)} ${fnum(-u[1] * 14)}"/>`
+        : `<path class="f-a" d="M${fnum(p1[0])} ${fnum(p1[1])} A${r} ${r} 0 0 ${u[0] * w[1] - u[1] * w[0] > 0 ? 1 : 0} ${fnum(p2[0])} ${fnum(p2[1])}"/>`;
+      if(!(right && al === '90°')){ const bs = [u[0] + w[0], u[1] + w[1]], bn = Math.hypot(...bs) || 1; out += ftxt(S[i][0] + bs[0] / bn * (r + 14), S[i][1] + bs[1] / bn * (r + 14), al, 'f-v'); }
+    }
+    out += fdot(S[i]) + ftxt(...fpush(S[i], g, 16), v[i], 'f-t');
+  }
+  return out;
+}
+
+function figCircle(sp){
+  const cx = 210, cy = 150, r = 105, c = [cx, cy], cn = String(sp.center || 'O'), pt = {};
+  for(const k in (sp.points || {})){ const a = +sp.points[k] * Math.PI / 180; pt[k] = [cx + r * Math.cos(a), cy - r * Math.sin(a)]; }
+  let out = `<circle class="f-s" cx="${cx}" cy="${cy}" r="${r}"/>`;
+  for(const ch of (sp.chords || [])){ const p = pt[ch[0]], q = pt[ch[1]]; if(p && q) out += fline(p, q, 'f-s'); }
+  for(const n of (sp.radii || [])) if(pt[n]) out += fline(c, pt[n], 'f-a');
+  const first = (sp.radii || []).find(n => pt[n]);
+  if(sp.label) out += first ? ftxt((cx + pt[first][0]) / 2, (cy + pt[first][1]) / 2 - 12, sp.label, 'f-v') : ftxt(cx, cy + 20, sp.label, 'f-v');
+  out += fdot(c) + ftxt(cx + 12, cy - 12, cn);
+  for(const k in pt) out += fdot(pt[k]) + ftxt(...fpush(pt[k], c, 16), k);
+  return out;
+}
+
+function figSemi(sp){
+  const ox = 210, oy = 235, R = 160, a = Math.max(0, Math.min(180, +sp.angle || 60)), rad = a * Math.PI / 180;
+  const M = [ox + R * Math.cos(rad), oy - R * Math.sin(rad)], F = [M[0], oy];
+  const cv = sp.show_values ? fnum(Math.cos(rad)) : 'cos α', sv = sp.show_values ? fnum(Math.sin(rad)) : 'sin α';
+  let out = fline([ox - R - 25, oy], [ox + R + 25, oy], 'f-ax') + fline([ox, oy], [ox, oy - R - 20], 'f-ax')
+    + `<path class="f-s" d="M${ox - R} ${oy} A${R} ${R} 0 0 1 ${ox + R} ${oy}"/>`
+    + fline([ox, oy], M, 'f-s') + fline(M, F, 'f-x')
+    + `<path class="f-a" d="M${ox + 34} ${oy} A34 34 0 0 0 ${fnum(ox + 34 * Math.cos(rad))} ${fnum(oy - 34 * Math.sin(rad))}"/>`
+    + ftxt(ox - R, oy + 16, '−1', 'f-l') + ftxt(ox, oy + 16, '0', 'f-l') + ftxt(ox + R, oy + 16, '1', 'f-l')
+    + ftxt(ox + 54 * Math.cos(rad / 2), oy - 54 * Math.sin(rad / 2), 'α', 'f-v')
+    + ftxt(F[0], oy + 34, cv, 'f-v') + ftxt(F[0] + (F[0] >= ox ? 8 : -8), (M[1] + oy) / 2, sv, 'f-v', F[0] >= ox ? 'start' : 'end')
+    + fdot(M) + ftxt(...fpush(M, [ox, oy], 14), 'M');
+  return out;
+}
+
+/* Безпечний розбір формул: жодного eval — власний розбирач виразів */
+function compileExpr(src, deg){
+  const s = String(src).toLowerCase().replace(/^y\s*=/, '').replace(/\s+/g, '').replace(/[−–]/g, '-').replace(/[×·]/g, '*')
+    .replace(/π/g, 'pi').replace(/²/g, '^2').replace(/³/g, '^3').replace(/,/g, '.');
+  const tk = s.match(/\d*\.?\d+|[a-z]+|[-+*/^()]/g) || []; let i = 0;
+  const D = Math.PI / 180;
+  const FN = { sin: v => Math.sin(deg ? v * D : v), cos: v => Math.cos(deg ? v * D : v), tan: v => Math.tan(deg ? v * D : v),
+    sqrt: Math.sqrt, abs: Math.abs, ln: Math.log, log: Math.log10, exp: Math.exp };
+  const peek = () => tk[i], next = () => tk[i++];
+  function expr(){ let f = term(); while(peek() === '+' || peek() === '-'){ const o = next(), g = term(), h = f; f = o === '+' ? x => h(x) + g(x) : x => h(x) - g(x); } return f; }
+  function term(){
+    let f = unary();
+    for(;;){
+      const p = peek();
+      if(p === '*' || p === '/'){ next(); const g = unary(), h = f; f = p === '*' ? x => h(x) * g(x) : x => h(x) / g(x); }
+      else if(p && (p === '(' || /^[\d.a-z]/.test(p))){ const g = unary(), h = f; f = x => h(x) * g(x); }
+      else break;
+    }
+    return f;
+  }
+  function unary(){ if(peek() === '-'){ next(); const g = unary(); return x => -g(x); } if(peek() === '+'){ next(); return unary(); } return power(); }
+  function power(){ const b = atom(); if(peek() === '^'){ next(); const e = unary(); return x => Math.pow(b(x), e(x)); } return b; }
+  function atom(){
+    const t = next();
+    if(t === undefined) throw 0;
+    if(/^[\d.]/.test(t)){ const n = parseFloat(t); return () => n; }
+    if(t === '('){ const f = expr(); if(next() !== ')') throw 0; return f; }
+    if(t === 'x') return x => x;
+    if(t === 'pi') return () => Math.PI;
+    if(t === 'e') return () => Math.E;
+    if(FN[t]){ if(next() !== '(') throw 0; const g = expr(); if(next() !== ')') throw 0; const fn = FN[t]; return x => fn(g(x)); }
+    throw 0;
+  }
+  try{ const f = expr(); if(i !== tk.length || tk.join('') !== s) return null; f(1); return f; }catch(e){ return null; }
+}
+
+function figGraph(sp){
+  const W = 420, H = 300, m = { l: 36, r: 14, t: 14, b: 26 };
+  let xmin = +(sp.xmin ?? -5), xmax = +(sp.xmax ?? 5), ymin = +(sp.ymin ?? -5), ymax = +(sp.ymax ?? 5);
+  if(!(xmax > xmin) || !(ymax > ymin)){ xmin = -5; xmax = 5; ymin = -5; ymax = 5; }
+  const X = x => m.l + (x - xmin) / (xmax - xmin) * (W - m.l - m.r), Y = y => H - m.b - (y - ymin) / (ymax - ymin) * (H - m.t - m.b);
+  const nice = rg => { const raw = rg / 8, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p; };
+  const sx = nice(xmax - xmin), sy = nice(ymax - ymin), id = 'fc' + (++figUid);
+  let out = `<clipPath id="${id}"><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}"/></clipPath>`;
+  for(let x = Math.ceil(xmin / sx) * sx; x <= xmax + 1e-9; x += sx){ const v = +x.toFixed(6); out += fline([X(v), m.t], [X(v), H - m.b], 'f-g') + ftxt(X(v), H - m.b + 12, String(v), 'f-l'); }
+  for(let y = Math.ceil(ymin / sy) * sy; y <= ymax + 1e-9; y += sy){ const v = +y.toFixed(6); out += fline([m.l, Y(v)], [W - m.r, Y(v)], 'f-g') + ftxt(m.l - 5, Y(v), String(v), 'f-l', 'end'); }
+  if(ymin <= 0 && ymax >= 0) out += fline([m.l, Y(0)], [W - m.r, Y(0)], 'f-ax');
+  if(xmin <= 0 && xmax >= 0) out += fline([X(0), m.t], [X(0), H - m.b], 'f-ax');
+  const rg = ymax - ymin; let li = 0;
+  (sp.fns || []).slice(0, 3).forEach((fd, idx) => {
+    const f = compileExpr(fd.expr, !!sp.deg); if(!f) return;
+    let d = '', pen = false;
+    for(let n = 0; n <= 400; n++){
+      const x = xmin + (xmax - xmin) * n / 400, y = f(x);
+      if(!isFinite(y) || y < ymin - rg || y > ymax + rg){ pen = false; continue; }
+      d += (pen ? 'L' : 'M') + fnum(X(x)) + ' ' + fnum(Y(y)); pen = true;
+    }
+    out += `<g clip-path="url(#${id})"><path class="f-fn f-k${idx}" d="${d}"/></g>`;
+    if(fd.label) out += ftxt(m.l + 10, m.t + 12 + 16 * li++, fd.label, 'f-v f-c' + idx, 'start');
+  });
+  for(const p of (sp.points || [])){ const q = [X(+p[0]), Y(+p[1])]; out += fdot(q) + (p[2] ? ftxt(q[0] + 7, q[1] - 9, String(p[2]), 'f-t', 'start') : ''); }
+  return out;
+}
+
+function figureHtml(spec){
+  try{
+    if(typeof spec === 'string') spec = JSON.parse(spec);
+    const f = { triangle: figTriangle, circle: figCircle, semicircle: figSemi, graph: figGraph }[spec && spec.type];
+    const inner = f ? f(spec) : '';
+    return inner ? `<div class="fig"><svg viewBox="0 0 420 300" role="img" aria-label="Рисунок до задачі">${inner}</svg></div>` : '';
+  }catch(e){ return ''; }
+}
+
+/* Текст із вкрапленими блоками <<FIG {...} FIG>> → HTML */
+function formatRich(raw){
+  const s = String(raw || ''), re = /<<FIG\s*([\s\S]*?)\s*FIG>>/g;
+  let out = '', last = 0, m;
+  while((m = re.exec(s))){
+    out += formatMsg(s.slice(last, m.index)) + figureHtml(m[1].replace(/```json|```/gi, '').trim());
+    last = re.lastIndex;
+  }
+  out += formatMsg(s.slice(last).replace(/<<FIG[\s\S]*$/, ''));
+  return out.replace(/<p><\/p>/g, '') || '<p></p>';
 }
 
 /* ================= Utils ================= */
